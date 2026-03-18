@@ -1,5 +1,3 @@
-using CSharpFunctionalExtensions;
-
 namespace MW.Application.Abstractions.CQRS;
 
 /// <summary>
