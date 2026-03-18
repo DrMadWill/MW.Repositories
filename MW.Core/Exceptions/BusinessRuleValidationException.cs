@@ -12,15 +12,9 @@ public sealed class BusinessRuleValidationException : Exception
     /// </summary>
     public IBusinessRule BrokenRule { get; }
 
-    /// <summary>
-    /// Gets additional details about the broken rule.
-    /// </summary>
-    public string Details { get; }
-
     public BusinessRuleValidationException(IBusinessRule brokenRule)
         : base(brokenRule.Message)
     {
         BrokenRule = brokenRule;
-        Details = brokenRule.Message;
     }
 }
