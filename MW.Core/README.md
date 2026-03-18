@@ -4,8 +4,22 @@
 
 ## 📦 Quraşdırma
 
+### NuGet Package Manager
+
 ```bash
-dotnet add reference MW.Core
+Install-Package MW.Core
+```
+
+### .NET CLI
+
+```bash
+dotnet add package MW.Core
+```
+
+### PackageReference
+
+```xml
+<PackageReference Include="MW.Core" Version="1.0.0" />
 ```
 
 ## 🏗️ Struktur
