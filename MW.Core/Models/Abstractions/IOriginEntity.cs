@@ -1,9 +1,12 @@
+using MW.Core.Entities;
+
 namespace MW.Core.Models.Abstractions;
 
-public interface IOriginEntity<T>
+/// <summary>
+/// Represents the base identity contract for entities.
+/// Extends <see cref="IEntity{TId}"/> for backward compatibility.
+/// </summary>
+/// <typeparam name="T">The type of the Id property.</typeparam>
+public interface IOriginEntity<T> : IEntity<T>
 {
-    /// <summary>
-    /// Gets or sets the unique identifier for the entity.
-    /// </summary>
-    T Id { get; set; }
 }
