@@ -5,6 +5,16 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Authors>Dr.MadWill</Authors>
+        <PackageIcon>avatar.png</PackageIcon>
+        <RepositoryUrl>https://github.com/DrMadWill/MW.Repositories</RepositoryUrl>
     </PropertyGroup>
+
+    <ItemGroup>
+      <None Update="avatar.png">
+        <Pack>True</Pack>
+        <PackagePath></PackagePath>
+      </None>
+    </ItemGroup>
 
 </Project>

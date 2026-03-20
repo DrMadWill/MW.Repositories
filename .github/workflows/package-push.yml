@@ -1,0 +1,53 @@
+name: Smart Package Publisher
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish-packages:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - MW.Application.Abstractions/MW.Application.Abstractions.csproj
+          - MW.BuildingBlocks/MW.BuildingBlocks.csproj
+          - MW.Core/MW.Core.csproj
+          ##- MW.Repositories/MW.Repositories.csproj
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore ${{ matrix.project }} --nologo
+
+      - name: Build (Release)
+        run: dotnet build ${{ matrix.project }} -c Release --no-restore --nologo
+
+      - name: Pack (.nupkg + .snupkg)
+        run: >
+          dotnet pack ${{ matrix.project }}
+          -c Release
+          -o ./nupkgs
+          /p:ContinuousIntegrationBuild=true
+          /p:IncludeSymbols=true
+          /p:SymbolPackageFormat=snupkg
+          --no-build
+          --nologo
+
+      - name: Publish package to NuGet.org
+        run: dotnet nuget push "./nupkgs/*.nupkg" --api-key "${{ secrets.NUGET_TOKEN }}" --source "https://api.nuget.org/v3/index.json" --skip-duplicate --no-symbols
+
+      - name: Publish symbols to NuGet.org
+        run: dotnet nuget push "./nupkgs/*.snupkg" --api-key "${{ secrets.NUGET_TOKEN }}" --source "https://api.nuget.org/v3/index.json" --skip-duplicate
