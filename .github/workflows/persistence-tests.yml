@@ -1,0 +1,61 @@
+name: Persistence Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        test-project:
+          - tests/MW.Persistence.Tests.Architecture
+          - tests/MW.Persistence.Tests.Unit
+          - tests/MW.Persistence.Tests.Integration
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore ${{ matrix.test-project }}
+
+      - name: Build
+        run: dotnet build ${{ matrix.test-project }} --no-restore
+
+      - name: Test
+        run: >
+          dotnet test ${{ matrix.test-project }}
+          --no-build
+          --verbosity normal
+          --logger "trx;LogFileName=test-results.trx"
+          --collect:"XPlat Code Coverage"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ strategy.job-index }}
+          path: '**/test-results.trx'
+          retention-days: 30
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ strategy.job-index }}
+          path: '**/coverage.cobertura.xml'
+          retention-days: 30

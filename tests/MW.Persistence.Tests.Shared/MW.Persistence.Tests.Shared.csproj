@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.4" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../MW.Core/MW.Core.csproj" />
+    <ProjectReference Include="../../MW.Persistence.Abstractions/MW.Persistence.Abstractions.csproj" />
+    <ProjectReference Include="../../MW.Persistence.EntityFrameworkCore/MW.Persistence.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="../../MW.Persistence.DependencyInjection/MW.Persistence.DependencyInjection.csproj" />
+  </ItemGroup>
+
+</Project>
