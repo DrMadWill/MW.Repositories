@@ -97,23 +97,28 @@ public class GenericConstraintValidationTests
     }
 
     [Fact]
-    public void IReadRepository_TId_Should_BeContravariant()
+    public void IReadRepository_TId_Should_BeInvariant()
     {
         var type = typeof(IReadRepository<,>);
         var tId = type.GetGenericArguments()[1];
 
-        tId.GenericParameterAttributes.Should().HaveFlag(
+        tId.GenericParameterAttributes.Should().NotHaveFlag(
             GenericParameterAttributes.Contravariant,
-            "TId should be declared with 'in' keyword (contravariant)");
+            "TId should not be declared with 'in' keyword (contravariant)");
+        tId.GenericParameterAttributes.Should().NotHaveFlag(
+            GenericParameterAttributes.Covariant,
+            "TId should not be declared with 'out' keyword (covariant)");
     }
 
     [Fact]
-    public void IWriteRepository_TId_Should_BeContravariant()
+    public void IWriteRepository_TId_Should_BeInvariant()
     {
         var type = typeof(IWriteRepository<,>);
         var tId = type.GetGenericArguments()[1];
 
-        tId.GenericParameterAttributes.Should().HaveFlag(
+        tId.GenericParameterAttributes.Should().NotHaveFlag(
             GenericParameterAttributes.Contravariant);
+        tId.GenericParameterAttributes.Should().NotHaveFlag(
+            GenericParameterAttributes.Covariant);
     }
 }

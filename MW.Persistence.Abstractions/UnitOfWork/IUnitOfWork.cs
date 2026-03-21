@@ -5,7 +5,7 @@ namespace MW.Persistence.Abstractions.UnitOfWork;
 /// Responsible for committing all pending persistence changes as a single atomic operation.
 /// Repository abstractions should not save changes automatically — commit logic is centralized here.
 /// </summary>
-public interface IUnitOfWork : IDisposable
+public interface IUnitOfWork
 {
     /// <summary>
     /// Saves all pending changes to the underlying data store.

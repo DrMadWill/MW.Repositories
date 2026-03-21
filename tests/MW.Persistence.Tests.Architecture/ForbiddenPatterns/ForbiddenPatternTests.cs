@@ -113,10 +113,10 @@ public class ForbiddenPatternTests
     }
 
     [Fact]
-    public void EfUnitOfWork_Should_ImplementIDisposable()
+    public void EfUnitOfWork_Should_NotImplementIDisposable()
     {
-        typeof(EfUnitOfWork).Should().Implement<IDisposable>(
-            "EfUnitOfWork should implement IDisposable for proper resource cleanup");
+        typeof(EfUnitOfWork).Should().NotImplement<IDisposable>(
+            "EfUnitOfWork should not implement IDisposable — DbContext lifecycle is managed by DI scope");
     }
 
     [Fact]

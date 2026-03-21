@@ -112,9 +112,9 @@ public class ContractShapeTests
     }
 
     [Fact]
-    public void IUnitOfWork_Should_InheritFromIDisposable()
+    public void IUnitOfWork_Should_NotInheritFromIDisposable()
     {
-        typeof(IUnitOfWork).Should().Implement<IDisposable>();
+        typeof(IUnitOfWork).Should().NotImplement<IDisposable>();
     }
 
     [Fact]
