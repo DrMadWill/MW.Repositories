@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MW.BuildingBlocks", "MW.Bui
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MW.Persistence.Abstractions", "MW.Persistence.Abstractions\MW.Persistence.Abstractions.csproj", "{F8464EC6-D6EF-422D-967F-B25C8A1FB3E9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MW.Persistence.EntityFrameworkCore", "MW.Persistence.EntityFrameworkCore\MW.Persistence.EntityFrameworkCore.csproj", "{97BCDDE3-F4A5-48DB-B958-A7F131F72EE3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -80,6 +82,18 @@ Global
 		{F8464EC6-D6EF-422D-967F-B25C8A1FB3E9}.Release|x64.Build.0 = Release|Any CPU
 		{F8464EC6-D6EF-422D-967F-B25C8A1FB3E9}.Release|x86.ActiveCfg = Release|Any CPU
 		{F8464EC6-D6EF-422D-967F-B25C8A1FB3E9}.Release|x86.Build.0 = Release|Any CPU
+		{97BCDDE3-F4A5-48DB-B958-A7F131F72EE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97BCDDE3-F4A5-48DB-B958-A7F131F72EE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97BCDDE3-F4A5-48DB-B958-A7F131F72EE3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{97BCDDE3-F4A5-48DB-B958-A7F131F72EE3}.Debug|x64.Build.0 = Debug|Any CPU
+		{97BCDDE3-F4A5-48DB-B958-A7F131F72EE3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{97BCDDE3-F4A5-48DB-B958-A7F131F72EE3}.Debug|x86.Build.0 = Debug|Any CPU
+		{97BCDDE3-F4A5-48DB-B958-A7F131F72EE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97BCDDE3-F4A5-48DB-B958-A7F131F72EE3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97BCDDE3-F4A5-48DB-B958-A7F131F72EE3}.Release|x64.ActiveCfg = Release|Any CPU
+		{97BCDDE3-F4A5-48DB-B958-A7F131F72EE3}.Release|x64.Build.0 = Release|Any CPU
+		{97BCDDE3-F4A5-48DB-B958-A7F131F72EE3}.Release|x86.ActiveCfg = Release|Any CPU
+		{97BCDDE3-F4A5-48DB-B958-A7F131F72EE3}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
