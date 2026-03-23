@@ -63,23 +63,6 @@ public class EfUnitOfWorkTests : IDisposable
     }
 
     [Fact]
-    public void Dispose_Should_DisposeDbContext()
-    {
-        _unitOfWork.Dispose();
-
-        // After disposing, any operation on the context should throw
-        Action act = () => _context.TestEntities.ToList();
-        act.Should().Throw<ObjectDisposedException>();
-    }
-
-    [Fact]
-    public void Dispose_Should_BeIdempotent()
-    {
-        _unitOfWork.Dispose();
-        _unitOfWork.Dispose(); // Should not throw on second disposal
-    }
-
-    [Fact]
     public async Task SaveChangesAsync_Should_SupportCancellation()
     {
         using var cts = new CancellationTokenSource();
@@ -94,7 +77,7 @@ public class EfUnitOfWorkTests : IDisposable
 
     public void Dispose()
     {
-        // Do not double-dispose — some tests already dispose
-        try { _factory.Dispose(); } catch { }
+        _context.Dispose();
+        _factory.Dispose();
     }
 }

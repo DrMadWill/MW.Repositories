@@ -8,7 +8,7 @@ namespace MW.Persistence.Abstractions.Repositories;
 /// </summary>
 /// <typeparam name="TEntity">The type of the entity.</typeparam>
 /// <typeparam name="TId">The type of the entity identifier.</typeparam>
-public interface IWriteRepository<TEntity, in TId> where TEntity : class, IEntity<TId>
+public interface IWriteRepository<TEntity, TId> where TEntity : class, IEntity<TId>
 {
     /// <summary>
     /// Adds a new entity.

@@ -10,7 +10,6 @@ namespace MW.Persistence.EntityFrameworkCore.UnitOfWork;
 public class EfUnitOfWork : IUnitOfWork
 {
     private readonly DbContext _dbContext;
-    private bool _disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EfUnitOfWork"/> class.
@@ -25,29 +24,5 @@ public class EfUnitOfWork : IUnitOfWork
     public virtual async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         return await _dbContext.SaveChangesAsync(cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public void Dispose()
-    {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
-    }
-
-    /// <summary>
-    /// Releases the resources used by the <see cref="EfUnitOfWork"/>.
-    /// </summary>
-    /// <param name="disposing"><c>true</c> to release managed resources.</param>
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!_disposed)
-        {
-            if (disposing)
-            {
-                _dbContext.Dispose();
-            }
-
-            _disposed = true;
-        }
     }
 }
