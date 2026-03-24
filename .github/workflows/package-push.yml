@@ -21,6 +21,7 @@ jobs:
           - MW.Persistence.EntityFrameworkCore/MW.Persistence.EntityFrameworkCore.csproj
           - MW.Persistence.Abstractions/MW.Persistence.Abstractions.csproj
           - MW.Persistence.DependencyInjection/MW.Persistence.DependencyInjection.csproj
+          - MW.Identity.Tokens/MW.Identity.Tokens.csproj
 
     steps:
       - name: Checkout code
