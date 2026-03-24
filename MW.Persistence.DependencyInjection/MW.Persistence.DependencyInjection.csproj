@@ -8,16 +8,13 @@
         <Authors>Dr.MadWill</Authors>
         <PackageIcon>avatar.png</PackageIcon>
         <RepositoryUrl>https://github.com/DrMadWill/MW.Repositories</RepositoryUrl>
+        <Version>1.0.1</Version>
     </PropertyGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\MW.Persistence.Abstractions\MW.Persistence.Abstractions.csproj" />
-        <ProjectReference Include="..\MW.Persistence.EntityFrameworkCore\MW.Persistence.EntityFrameworkCore.csproj" />
-    </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.4" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.4" />
+        <PackageReference Include="MW.Persistence.EntityFrameworkCore" Version="1.0.1" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
         <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="8.0.4" />
