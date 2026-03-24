@@ -11,6 +11,7 @@
 | [MW.Persistence.Abstractions](MW.Persistence.Abstractions/) | Persistence kontraktları — Repository, UnitOfWork, Specification, Transaction, Query interfeyslər | MW.Core |
 | [MW.Persistence.EntityFrameworkCore](MW.Persistence.EntityFrameworkCore/) | EF Core implementasiyaları — bütün persistence abstraksiyalarının konkret reallaşdırılması | MW.Core, MW.Persistence.Abstractions, EF Core 8.0.4 |
 | [MW.BuildingBlocks](MW.BuildingBlocks/) | Mikroservis infrastrukturu — Messaging, Correlation, Observability, MassTransit abstraksiyaları, Audit | — |
+| [MW.Identity.Token](MW.Identity.Token/) | JWT əsaslı istifadəçi identifikasiyası — ICurrentUser, ClaimsPrincipal extensions, Claim sabitləri, Sistem rolları | Microsoft.AspNetCore.App, Newtonsoft.Json |
 | MW.Repositories | Wrapper/meta layihə | Bütün layihələr |
 
 ## 🏛️ Arxitektura
@@ -32,6 +33,10 @@
 │                      MW.BuildingBlocks                       │
 │   Messaging · Correlation · Observability · MassTransit      │
 │   Audit · Headers · Contracts · Constants                    │
+├─────────────────────────────────────────────────────────────┤
+│                      MW.Identity.Token                        │
+│   ICurrentUser · ClaimsPrincipal Extensions · ClaimConstants  │
+│   SystemRole · DependencyInjection · JWT Claims               │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -64,6 +69,7 @@ Install-Package MW.Application.Abstractions
 Install-Package MW.Persistence.Abstractions
 Install-Package MW.Persistence.EntityFrameworkCore
 Install-Package MW.BuildingBlocks
+Install-Package MW.Identity.Token
 ```
 
 ### .NET CLI
@@ -74,6 +80,7 @@ dotnet add package MW.Application.Abstractions
 dotnet add package MW.Persistence.Abstractions
 dotnet add package MW.Persistence.EntityFrameworkCore
 dotnet add package MW.BuildingBlocks
+dotnet add package MW.Identity.Token
 ```
 
 ## 🚀 İstifadə Nümunələri
@@ -215,6 +222,45 @@ public class OrderCreatedEvent : IntegrationEvent
 }
 ```
 
+### JWT İstifadəçi İdentifikasiyası (Identity Token)
+
+```csharp
+using MW.Identity.Token.DependencyInjection;
+
+// Program.cs — servislərin qeydiyyatı
+builder.Services.AddUserTokenManager();
+```
+
+```csharp
+using MW.Identity.Token.Contracts;
+using MW.Identity.Token.Constants;
+
+[ApiController]
+[Route("api/[controller]")]
+public class ProductsController : ControllerBase
+{
+    private readonly ICurrentUser _currentUser;
+
+    public ProductsController(ICurrentUser currentUser)
+    {
+        _currentUser = currentUser;
+    }
+
+    [HttpDelete("{id}")]
+    public IActionResult Delete(int id)
+    {
+        if (!_currentUser.IsAuthenticated)
+            throw new UnauthorizedAccessException();
+
+        if (!_currentUser.IsInRole(SystemRole.SuperAdmin))
+            return Forbid();
+
+        // ... məhsulu sil
+        return NoContent();
+    }
+}
+```
+
 ## 🏗️ Layihə Strukturu
 
 ```
@@ -272,6 +318,13 @@ MW.Repositories/
 │   ├── Constants/                        # EventDirections, EventStatuses
 │   └── Docs/                             # Konvensiya sənədləri
 │
+├── MW.Identity.Token/                    # JWT Identity Management
+│   ├── Constants/                        # ClaimConstants, SystemRole sabitləri
+│   ├── Contracts/                        # ICurrentUser interfeysi
+│   ├── DependencyInjection/              # AddUserTokenManager() extension
+│   ├── Extensions/                       # ClaimsPrincipal extension metodları
+│   └── Services/                         # CurrentUser implementasiyası
+│
 └── MW.Repositories/                      # Wrapper/Meta Project
 ```
 
@@ -283,6 +336,8 @@ MW.Repositories/
 | MediatR | 12.1.1 | MW.Application.Abstractions |
 | CSharpFunctionalExtensions | 3.7.0 | MW.Application.Abstractions |
 | Dr.Pagination | 1.0.1 | MW.Application.Abstractions |
+| Newtonsoft.Json | 13.0.3 | MW.Identity.Token |
+| Microsoft.AspNetCore.App | framework | MW.Identity.Token |
 
 ## 🔧 Build
 
