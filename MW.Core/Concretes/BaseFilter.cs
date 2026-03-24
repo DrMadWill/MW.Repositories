@@ -36,7 +36,7 @@ public abstract class StandardFilter<TEntity>
     /// </summary>
     /// <param name="source">The IQueryable source to be filtered.</param>
     /// <returns>The filtered IQueryable result.</returns>
-    public abstract IQueryable<TEntity> Filtered(IQueryable<TEntity> source);
+    public abstract IQueryable<TEntity> ApplyFilter(IQueryable<TEntity> source);
 }
 
 public static class StandardFilterUtils
@@ -44,5 +44,5 @@ public static class StandardFilterUtils
     public static IQueryable<TEntity> FilterBy<TEntity>(this IQueryable<TEntity> source,
         StandardFilter<TEntity>? filter)
         where TEntity : class
-        => filter?.Filtered(source) ?? source;
+        => filter?.ApplyFilter(source) ?? source;
 }
