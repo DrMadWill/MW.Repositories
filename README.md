@@ -229,7 +229,7 @@ MW.Repositories/
 │   ├── MultiTenancy/                     # Multi-tenant dəstəyi
 │   ├── Exceptions/                       # Domain exception-lar
 │   ├── Abstractions/                     # Ümumi abstraksiyalar
-│   ├── Concretes/                        # Enumeration, BaseFilter
+│   ├── Concretes/                        # Enumeration, StandardFilter
 │   └── Models/                           # Model abstraksiyaları
 │
 ├── MW.Application.Abstractions/          # Application Layer

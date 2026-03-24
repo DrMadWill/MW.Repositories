@@ -29,7 +29,7 @@ MW.Core/
 ├── Abstractions/        # Base interfeyslər (IBaseDto, ILang, IHasConcurrencyToken)
 ├── AggregateRoots/      # Aggregate Root base class və interfeys
 ├── Auditing/            # Audit interfeyslər (yaradılma, yenilənmə, silinmə)
-├── Concretes/           # Concrete implementasiyalar (Enumeration, BaseFilter)
+├── Concretes/           # Concrete implementasiyalar (Enumeration, StandardFilter)
 ├── Entities/            # Entity base class və interfeyslər
 ├── Events/              # Domain Event infrastrukturu
 ├── Exceptions/          # Business Rule exception
@@ -210,22 +210,16 @@ var status = Enumeration.FromId<OrderStatus>(1);
 
 ### Filtering
 
-BaseFilter ilə filterleme:
+StandardFilter ilə filterleme:
 
 ```csharp
-public class ProductFilter : BaseFilter<Product, Guid>
+public class ProductFilter : StandardFilter<Product>
 {
     public decimal? MinPrice { get; set; }
     public decimal? MaxPrice { get; set; }
     
-    public override IQueryable<Product> Filtered(IQueryable<Product> source)
+    public override IQueryable<Product> ApplyFilter(IQueryable<Product> source)
     {
-        if (Id.HasValue)
-            source = source.Where(x => x.Id == Id);
-            
-        if (!string.IsNullOrEmpty(Name))
-            source = source.Where(x => x.Name.Contains(Name));
-            
         if (MinPrice.HasValue)
             source = source.Where(x => x.Price >= MinPrice);
             
@@ -235,6 +229,11 @@ public class ProductFilter : BaseFilter<Product, Guid>
         return source;
     }
 }
+
+// Extension method istifadəsi:
+IQueryable<Product> query = dbContext.Products.AsQueryable();
+var filter = new ProductFilter { MinPrice = 10, MaxPrice = 100 };
+query = query.FilterBy(filter);
 ```
 
 ## 📋 Interface-lər
