@@ -9,16 +9,16 @@
         <PackageIcon>avatar.png</PackageIcon>
         <RepositoryUrl>https://github.com/DrMadWill/MW.Repositories</RepositoryUrl>
     </PropertyGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\MW.Core\MW.Core.csproj" />
-    </ItemGroup>
-
+    
     <ItemGroup>
       <None Update="avatar.png">
         <Pack>True</Pack>
         <PackagePath></PackagePath>
       </None>
+    </ItemGroup>
+    
+    <ItemGroup>
+      <PackageReference Include="MW.Core" Version="1.0.1" />
     </ItemGroup>
 
 </Project>
