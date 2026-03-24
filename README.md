@@ -10,7 +10,7 @@
 | [MW.Application.Abstractions](MW.Application.Abstractions/) | Application-layer kontraktları — CQRS, Errors, Authorization, Caching, Validation, Pagination, Context, Time | MediatR, CSharpFunctionalExtensions, Dr.Pagination |
 | [MW.Persistence.Abstractions](MW.Persistence.Abstractions/) | Persistence kontraktları — Repository, UnitOfWork, Specification, Transaction, Query interfeyslər | MW.Core |
 | [MW.Persistence.EntityFrameworkCore](MW.Persistence.EntityFrameworkCore/) | EF Core implementasiyaları — bütün persistence abstraksiyalarının konkret reallaşdırılması | MW.Core, MW.Persistence.Abstractions, EF Core 8.0.4 |
-| [MW.BuildingBlocks](MW.BuildingBlocks/) | Mikroservis infrastrukturu — Messaging, Correlation, Observability, MassTransit abstraksiyaları, Audit | — |
+| [MW.Messaging.Abstractions](MW.Messaging.Abstractions/) | Mikroservis infrastrukturu — Messaging, Correlation, Observability, MassTransit abstraksiyaları, Audit | — |
 | MW.Repositories | Wrapper/meta layihə | Bütün layihələr |
 
 ## 🏛️ Arxitektura
@@ -29,7 +29,7 @@
 │  Abstractions             │  EntityFrameworkCore             │
 │  (kontraktlar)            │  (EF Core implementasiyalar)     │
 ├──────────────────────────┴──────────────────────────────────┤
-│                      MW.BuildingBlocks                       │
+│                  MW.Messaging.Abstractions                    │
 │   Messaging · Correlation · Observability · MassTransit      │
 │   Audit · Headers · Contracts · Constants                    │
 └─────────────────────────────────────────────────────────────┘
@@ -63,7 +63,7 @@ Install-Package MW.Core
 Install-Package MW.Application.Abstractions
 Install-Package MW.Persistence.Abstractions
 Install-Package MW.Persistence.EntityFrameworkCore
-Install-Package MW.BuildingBlocks
+Install-Package MW.Messaging.Abstractions
 ```
 
 ### .NET CLI
@@ -73,7 +73,7 @@ dotnet add package MW.Core
 dotnet add package MW.Application.Abstractions
 dotnet add package MW.Persistence.Abstractions
 dotnet add package MW.Persistence.EntityFrameworkCore
-dotnet add package MW.BuildingBlocks
+dotnet add package MW.Messaging.Abstractions
 ```
 
 ## 🚀 İstifadə Nümunələri
@@ -199,10 +199,10 @@ public class TransferService
 }
 ```
 
-### Integration Events (BuildingBlocks)
+### Integration Events (Messaging)
 
 ```csharp
-using MW.BuildingBlocks.Contracts;
+using MW.Messaging.Contracts;
 
 public class OrderCreatedEvent : IntegrationEvent
 {
@@ -261,7 +261,7 @@ MW.Repositories/
 │   ├── Extensions/                       # (ayrılmış — gələcək genişlənmə)
 │   └── Internal/                         # (ayrılmış — daxili köməkçilər)
 │
-├── MW.BuildingBlocks/                    # Microservice Infrastructure
+├── MW.Messaging.Abstractions/             # Microservice Messaging Infrastructure
 │   ├── Contracts/                        # IIntegrationEvent, IntegrationEvent
 │   ├── Messaging/                        # EventMetadata, ServiceIdentity
 │   ├── Correlation/                      # ICorrelationContext

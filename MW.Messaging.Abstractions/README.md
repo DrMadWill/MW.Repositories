@@ -1,33 +1,59 @@
-# MW.BuildingBlocks
+# MW.Messaging.Abstractions
 
-**MW.BuildingBlocks** — mikroservis ekosistemi üçün paylaşılan mesajlaşma kontraktları, korrelyasiya, müşahidəçilik (observability) və MassTransit-uyğun abstraksiyaları təmin edən .NET 8.0 kitabxanasıdır.
+**MW.Messaging.Abstractions** — mikroservis ekosistemi üçün transport-agnostik mesajlaşma/eventing abstraksiyalarını, kontraktları, korrelyasiya, müşahidəçilik (observability) və MassTransit-uyğun interfeyslər təmin edən .NET 8.0 kitabxanasıdır.
 
-> **Vacib:** Bu layihə manual Outbox/Inbox implementasiyası ehtiva etmir. Etibarlılıq (reliability) üçün **MassTransit Transactional Outbox** istifadə olunur. BuildingBlocks yalnız event kontraktları, korrelyasiya, strukturlaşdırılmış loglama və müşahidəçilik üzərində fokuslanır.
+> **Vacib:** Bu layihə manual Outbox/Inbox implementasiyası ehtiva etmir. Etibarlılıq (reliability) üçün **MassTransit Transactional Outbox** istifadə olunur. MW.Messaging.Abstractions yalnız event kontraktları, korrelyasiya, strukturlaşdırılmış loglama və müşahidəçilik üzərində fokuslanır.
+
+## 🎯 Məqsəd
+
+Bu paket mikroservislər arasında mesajlaşma/eventing üçün paylaşılan abstraksiyalar təmin edir. Konkret transport implementasiyasından (RabbitMQ, Kafka, və s.) asılı olmayan kontraktlar, modellər və interfeyslər bu paketdə yerləşir.
 
 ## 📦 Quraşdırma
 
 ### NuGet Package Manager
 
 ```bash
-Install-Package MW.BuildingBlocks
+Install-Package MW.Messaging.Abstractions
 ```
 
 ### .NET CLI
 
 ```bash
-dotnet add package MW.BuildingBlocks
+dotnet add package MW.Messaging.Abstractions
 ```
 
 ### PackageReference
 
 ```xml
-<PackageReference Include="MW.BuildingBlocks" Version="1.0.0" />
+<PackageReference Include="MW.Messaging.Abstractions" Version="1.0.0" />
 ```
 
-## 🏗️ Struktur
+## ✅ Scope (Bu paketin məsuliyyəti)
+
+- **İnteqrasiya event kontraktları** — `IIntegrationEvent`, `IntegrationEvent`
+- **Mesaj header-ləri** — `MessageHeaders` standart header sabitləri
+- **Korrelyasiya** — `ICorrelationContext` distributed tracing abstraksiyası
+- **Publish/consume kontekst modelləri** — `PublishContextModel`, `ConsumerContextModel`
+- **Müşahidəçilik abstraksiyaları** — `MessageLogContext`, `ObservabilityFields`
+- **MassTransit abstraksiyaları** — Observer interfeyslər (`IPublishObserver`, `IConsumeObserver`, `ISendObserver`), `IMessageHeaderMapper`
+- **Event metadata** — `EventMetadata`, `ServiceIdentity`
+- **Audit** — `EventAuditRecord` (opsional event tarixçəsi)
+- **Sabitlər** — `EventDirections`, `EventStatuses`
+- **Sənədlər** — Event adlandırma, loglama qaydaları, fault idarəetmə
+
+## ❌ Non-Scope (Bu paketin məsuliyyətinə daxil deyil)
+
+- **Repository abstraksiyaları** — `MW.Persistence.Abstractions`-da yerləşir
+- **Identity implementasiyası** — HTTP/user token çıxarma `MW.Identity.Token`-da qalır
+- **Manual outbox/inbox implementasiyası** — MassTransit Transactional Outbox istifadə olunur
+- **Biznes-spesifik repair məntiqi** — Servis səviyyəsində qalmalıdır
+- **Servis-spesifik sinxronizasiya məntiqi** — Hər servisin öz daxili işidir
+- **Konkret MassTransit implementasiyası** — Gələcəkdə `MW.Messaging.MassTransit`-da olacaq
+
+## 🏗️ Paket Strukturu
 
 ```
-MW.BuildingBlocks/
+MW.Messaging.Abstractions/
 ├── Audit/              # Opsional event audit jurnalı
 ├── Constants/          # Paylaşılan sabitlər (istiqamət, status)
 ├── Contracts/          # İnteqrasiya event kontraktları
@@ -39,14 +65,49 @@ MW.BuildingBlocks/
 └── Observability/      # Müşahidəçilik modelləri və sahə standartları
 ```
 
+## 🔑 Əsas Konseptlər
+
+| Konsept | Təsvir |
+|---------|--------|
+| **İnteqrasiya Event** | Mikroservislər arası asınxron kommunikasiya kontraktı |
+| **Korrelyasiya** | Distributed tracing üçün request/event əlaqələndirmə |
+| **Header Mapping** | Mesaj metadata-sının transport header-lərinə çevrilməsi |
+| **Observability** | Strukturlaşdırılmış loglama və monitorinq standartları |
+| **Audit Trail** | Opsional event tarixçəsi jurnalı |
+
+## 🏛️ Dependency Direction (Asılılıq İstiqaməti)
+
+```
+┌──────────────────────────────────────────┐
+│         Application / Services           │
+│    (servisləriniz bu paketdən asılıdır)  │
+└───────────────┬──────────────────────────┘
+                │ depends on
+                ▼
+┌──────────────────────────────────────────┐
+│      MW.Messaging.Abstractions           │
+│  (kontraktlar, interfeyslər, modellər)   │
+└───────────────┬──────────────────────────┘
+                │ implemented by (gələcək)
+                ▼
+┌──────────────────────────────────────────┐
+│      MW.Messaging.MassTransit            │
+│  (konkret MassTransit implementasiyası)  │
+└──────────────────────────────────────────┘
+```
+
+**Asılılıq qaydaları:**
+- Application/servis layihələri `MW.Messaging.Abstractions`-dan asılıdır
+- Messaging infrastruktur implementasiyası gələcəkdə `MW.Messaging.MassTransit`-da olacaq
+- HTTP user identity `MW.Identity.Token`-da qalır — mesaj konteksti ilə qarışmamalıdır
+- Persistence concern-ləri `MW.Persistence.*`-da qalır — messaging-dən asılı olmamalıdır
+
 ## 🚀 İstifadə
 
 ### İnteqrasiya Event Kontraktları (Contracts)
 
-`IIntegrationEvent` interfeysi mikroservislər arasında dəyişdirilən bütün event-lər üçün standart kontraktdır. `IntegrationEvent` abstract sinfi isə əsas implementasiyanı təmin edir:
-
 ```csharp
-using MW.BuildingBlocks.Contracts;
+using MW.Messaging.Contracts;
 
 public class OrderCreatedEvent : IntegrationEvent
 {
@@ -57,23 +118,12 @@ public class OrderCreatedEvent : IntegrationEvent
     public override string EventVersion => "v1";
     public override string SourceService => "OrderService";
 }
-
-// İstifadə
-var @event = new OrderCreatedEvent
-{
-    OrderId = Guid.NewGuid(),
-    TotalAmount = 150.00m,
-    CorrelationId = "corr-123",
-    CausationId = "cmd-456"
-};
 ```
 
 ### Event Metadata (Messaging)
 
-`EventMetadata` event payload-dan ayrı saxlanılan cross-cutting metadata modelidir. Loglama, tracing və diagnostika üçün istifadə olunur:
-
 ```csharp
-using MW.BuildingBlocks.Messaging;
+using MW.Messaging.Messaging;
 
 var metadata = new EventMetadata
 {
@@ -87,27 +137,10 @@ var metadata = new EventMetadata
 };
 ```
 
-### Servis Kimliyi (Messaging)
-
-`ServiceIdentity` publish və ya consume edən servisin kimliyini təsvir edir:
+### Publish / Consumer Kontekst Modelləri
 
 ```csharp
-using MW.BuildingBlocks.Messaging;
-
-var identity = new ServiceIdentity
-{
-    ServiceName = "OrderService",
-    ServiceVersion = "1.2.0",
-    Environment = "Production"
-};
-```
-
-### Publish Kontekst Modeli (Messaging)
-
-`PublishContextModel` event publish zamanı MassTransit header-lərinə map olunacaq metadata-nı standartlaşdırır:
-
-```csharp
-using MW.BuildingBlocks.Messaging;
+using MW.Messaging.Messaging;
 
 var publishContext = new PublishContextModel
 {
@@ -118,52 +151,32 @@ var publishContext = new PublishContextModel
     SourceService = "OrderService",
     TraceId = "trace-789"
 };
-```
-
-### Consumer Kontekst Modeli (Messaging)
-
-`ConsumerContextModel` consume tərəfində mesaj metadata-sını biznes/application koduna ötürmək üçün istifadə olunur. Bu model MassTransit-in `ConsumeContext` tipindən asılılığı aradan qaldırır:
-
-```csharp
-using MW.BuildingBlocks.Messaging;
 
 var consumerContext = new ConsumerContextModel
 {
     MessageId = Guid.NewGuid(),
     CorrelationId = "corr-123",
-    CausationId = "cmd-456",
-    TenantId = Guid.Parse("..."),
-    UserId = Guid.Parse("..."),
     SourceService = "OrderService",
-    TraceId = "trace-789",
     EventName = "order.created.v1"
 };
 ```
 
 ### Mesaj Header Sabitləri (Headers)
 
-`MessageHeaders` MassTransit vasitəsilə mesaj publish/consume zamanı istifadə olunan standart header adlarını təmin edir:
-
 ```csharp
-using MW.BuildingBlocks.Headers;
+using MW.Messaging.Headers;
 
-// Header-lər
 string correlationHeader = MessageHeaders.CorrelationId;   // "x-correlation-id"
 string causationHeader = MessageHeaders.CausationId;       // "x-causation-id"
 string tenantHeader = MessageHeaders.TenantId;             // "x-tenant-id"
-string userHeader = MessageHeaders.UserId;                 // "x-user-id"
 string sourceHeader = MessageHeaders.SourceService;        // "x-source-service"
-string eventNameHeader = MessageHeaders.EventName;         // "x-event-name"
-string versionHeader = MessageHeaders.EventVersion;        // "x-event-version"
 string traceHeader = MessageHeaders.TraceId;               // "x-trace-id"
 ```
 
 ### Korrelyasiya Konteksti (Correlation)
 
-`ICorrelationContext` distributed tracing və request korrelyasiyası üçün paylaşılan abstraksiyasıdır. Biznes məntiqi birbaşa MassTransit kontekst tiplərinə bağlı olmur:
-
 ```csharp
-using MW.BuildingBlocks.Correlation;
+using MW.Messaging.Correlation;
 
 public class MyService
 {
@@ -183,55 +196,27 @@ public class MyService
 }
 ```
 
-### Müşahidəçilik — Mesaj Log Konteksti (Observability)
-
-`MessageLogContext` event publish/consume loglama üçün paylaşılan modeldir. Bütün servislər eyni strukturda log yazır:
+### Müşahidəçilik (Observability)
 
 ```csharp
-using MW.BuildingBlocks.Observability;
+using MW.Messaging.Observability;
 
 var logContext = new MessageLogContext
 {
     MessageId = Guid.NewGuid(),
     EventName = "order.created.v1",
-    EventVersion = "v1",
     CorrelationId = "corr-123",
-    CausationId = "cmd-456",
-    TraceId = "trace-789",
     SourceService = "OrderService",
     Consumer = "PaymentConsumer",
-    Endpoint = "order-created-queue",
     Status = "Consumed"
 };
 ```
 
-### Müşahidəçilik Sahə Standartları (Observability)
-
-`ObservabilityFields` Grafana/Graylog/Loki/Tempo axtarışları üçün standart sahə adlarını təmin edir:
+### MassTransit Abstraksiyaları
 
 ```csharp
-using MW.BuildingBlocks.Observability;
-
-// Sahə adları
-string traceField = ObservabilityFields.TraceId;           // "trace_id"
-string correlationField = ObservabilityFields.CorrelationId; // "correlation_id"
-string messageField = ObservabilityFields.MessageId;       // "message_id"
-string eventField = ObservabilityFields.EventName;         // "event_name"
-string serviceField = ObservabilityFields.ServiceName;     // "service_name"
-string consumerField = ObservabilityFields.ConsumerName;   // "consumer_name"
-string endpointField = ObservabilityFields.EndpointName;   // "endpoint_name"
-string versionField = ObservabilityFields.EventVersion;    // "event_version"
-string statusField = ObservabilityFields.Status;           // "status"
-string durationField = ObservabilityFields.DurationMs;     // "duration_ms"
-```
-
-### MassTransit Header Mapping (MassTransit)
-
-`IMessageHeaderMapper` paylaşılan metadata modelləri ilə MassTransit header-ləri arasında mapping-i mərkəzləşdirir:
-
-```csharp
-using MW.BuildingBlocks.MassTransit;
-using MW.BuildingBlocks.Messaging;
+using MW.Messaging.MassTransit;
+using MW.Messaging.Messaging;
 
 public class MyHeaderMapper : IMessageHeaderMapper
 {
@@ -240,9 +225,6 @@ public class MyHeaderMapper : IMessageHeaderMapper
         var headers = new Dictionary<string, object>();
         if (context.CorrelationId != null)
             headers["x-correlation-id"] = context.CorrelationId;
-        if (context.SourceService != null)
-            headers["x-source-service"] = context.SourceService;
-        // ... digər header-lər
         return headers;
     }
 
@@ -251,122 +233,42 @@ public class MyHeaderMapper : IMessageHeaderMapper
         return new ConsumerContextModel
         {
             CorrelationId = headers.TryGetValue("x-correlation-id", out var c) ? c?.ToString() : null,
-            SourceService = headers.TryGetValue("x-source-service", out var s) ? s?.ToString() : null,
-            // ... digər sahələr
         };
     }
 }
 ```
 
-### MassTransit Observer-lər (MassTransit)
-
-Publish, consume və send əməliyyatları üçün strukturlaşdırılmış loglama observer-ləri:
-
-```csharp
-using MW.BuildingBlocks.MassTransit;
-using MW.BuildingBlocks.Observability;
-
-// Publish observer
-public class MyPublishObserver : IPublishObserver
-{
-    public Task OnPrePublish(MessageLogContext logContext)
-    {
-        // Publish öncəsi log
-        return Task.CompletedTask;
-    }
-
-    public Task OnPostPublish(MessageLogContext logContext)
-    {
-        // Uğurlu publish sonrası log
-        return Task.CompletedTask;
-    }
-
-    public Task OnPublishFault(MessageLogContext logContext, Exception exception)
-    {
-        // Publish xətası logu
-        return Task.CompletedTask;
-    }
-}
-
-// Consume observer
-public class MyConsumeObserver : IConsumeObserver
-{
-    public Task OnPreConsume(MessageLogContext logContext) => Task.CompletedTask;
-    public Task OnPostConsume(MessageLogContext logContext) => Task.CompletedTask;
-    public Task OnConsumeFault(MessageLogContext logContext, Exception exception) => Task.CompletedTask;
-}
-```
-
-### Event Audit Jurnalı (Audit)
-
-`EventAuditRecord` uzunmüddətli event tarixçəsi lazım olan komandalar üçün opsional audit modelidir:
-
-> **Diqqət:** Bu model MassTransit Inbox/Outbox əvəzi **deyil**. Dublikat aşkarlama üçün istifadə olunmamalıdır. Yalnız biznes və ya dəstək məqsədləri üçün event tarixçəsi lazım olduqda istifadə edin.
-
-```csharp
-using MW.BuildingBlocks.Audit;
-
-var record = new EventAuditRecord
-{
-    MessageId = Guid.NewGuid(),
-    EventName = "order.created.v1",
-    Direction = "Published",
-    Service = "OrderService",
-    Consumer = null,
-    CorrelationId = "corr-123",
-    Status = "Success",
-    Error = null
-};
-```
-
-### Sabitlər (Constants)
-
-Event istiqamət və status sabitləri:
-
-```csharp
-using MW.BuildingBlocks.Constants;
-
-// İstiqamətlər
-string published = EventDirections.Published;   // "Published"
-string consumed = EventDirections.Consumed;     // "Consumed"
-
-// Statuslar
-string success = EventStatuses.Success;         // "Success"
-string failed = EventStatuses.Failed;           // "Failed"
-string pending = EventStatuses.Pending;         // "Pending"
-```
-
 ## 📋 Interface-lər
 
-| Interface | Təsvir |
-|-----------|--------|
-| `IIntegrationEvent` | Mikroservislər arası event kontraktı |
-| `ICorrelationContext` | Distributed tracing korrelyasiya abstraksiyası |
-| `IMessageHeaderMapper` | MassTransit header mapping kontraktı |
-| `IPublishObserver` | Publish loglama observer interfeysi |
-| `IConsumeObserver` | Consume loglama observer interfeysi |
-| `ISendObserver` | Send loglama observer interfeysi |
+| Interface | Namespace | Təsvir |
+|-----------|-----------|--------|
+| `IIntegrationEvent` | `MW.Messaging.Contracts` | Mikroservislər arası event kontraktı |
+| `ICorrelationContext` | `MW.Messaging.Correlation` | Distributed tracing korrelyasiya abstraksiyası |
+| `IMessageHeaderMapper` | `MW.Messaging.MassTransit` | MassTransit header mapping kontraktı |
+| `IPublishObserver` | `MW.Messaging.MassTransit` | Publish loglama observer interfeysi |
+| `IConsumeObserver` | `MW.Messaging.MassTransit` | Consume loglama observer interfeysi |
+| `ISendObserver` | `MW.Messaging.MassTransit` | Send loglama observer interfeysi |
 
 ## 📋 Modellər
 
-| Model | Təsvir |
-|-------|--------|
-| `IntegrationEvent` | İnteqrasiya event base sinfi |
-| `EventMetadata` | Event cross-cutting metadata |
-| `ServiceIdentity` | Servis kimliyi modeli |
-| `PublishContextModel` | Publish-vaxtı metadata modeli |
-| `ConsumerContextModel` | Consumer-tərəfi metadata modeli |
-| `MessageLogContext` | Event loglama müşahidəçilik modeli |
-| `EventAuditRecord` | Opsional event audit jurnalı |
+| Model | Namespace | Təsvir |
+|-------|-----------|--------|
+| `IntegrationEvent` | `MW.Messaging.Contracts` | İnteqrasiya event base sinfi |
+| `EventMetadata` | `MW.Messaging.Messaging` | Event cross-cutting metadata |
+| `ServiceIdentity` | `MW.Messaging.Messaging` | Servis kimliyi modeli |
+| `PublishContextModel` | `MW.Messaging.Messaging` | Publish-vaxtı metadata modeli |
+| `ConsumerContextModel` | `MW.Messaging.Messaging` | Consumer-tərəfi metadata modeli |
+| `MessageLogContext` | `MW.Messaging.Observability` | Event loglama müşahidəçilik modeli |
+| `EventAuditRecord` | `MW.Messaging.Audit` | Opsional event audit jurnalı |
 
 ## 📋 Sabit Sinifləri
 
-| Sinif | Təsvir |
-|-------|--------|
-| `MessageHeaders` | Mesaj header adı sabitləri (`x-correlation-id`, `x-trace-id`, ...) |
-| `ObservabilityFields` | Grafana/Graylog sahə adı standartları (`trace_id`, `correlation_id`, ...) |
-| `EventDirections` | Event istiqamət sabitləri (`Published`, `Consumed`) |
-| `EventStatuses` | Event status sabitləri (`Success`, `Failed`, `Pending`) |
+| Sinif | Namespace | Təsvir |
+|-------|-----------|--------|
+| `MessageHeaders` | `MW.Messaging.Headers` | Mesaj header adı sabitləri |
+| `ObservabilityFields` | `MW.Messaging.Observability` | Grafana/Graylog sahə adı standartları |
+| `EventDirections` | `MW.Messaging.Constants` | Event istiqamət sabitləri |
+| `EventStatuses` | `MW.Messaging.Constants` | Event status sabitləri |
 
 ## 📚 Sənədlər
 
@@ -378,11 +280,11 @@ string pending = EventStatuses.Pending;         // "Pending"
 
 ## 🏛️ Arxitektura Qərarı
 
-Bu BuildingBlocks layihəsi aşağıdakı prinsiplərə əsaslanır:
+Bu layihə aşağıdakı prinsiplərə əsaslanır:
 
 - **MassTransit Transactional Outbox** etibarlılıq həllidir
 - **MassTransit Consumer Outbox / InboxState** dublikat aşkarlama həllidir
-- **BuildingBlocks** bu mexanizmləri manual olaraq təkrarlamamalıdır
+- **MW.Messaging.Abstractions** bu mexanizmləri manual olaraq təkrarlamamalıdır
 - **Event görünürlüyü** strukturlaşdırılmış loglama, korrelyasiya, fault idarəetmə və müşahidəçilik inteqrasiyaları vasitəsilə təmin olunmalıdır
 
 ## ⚠️ Bu Layihə Ehtiva Etmir
@@ -391,6 +293,7 @@ Bu BuildingBlocks layihəsi aşağıdakı prinsiplərə əsaslanır:
 - Manual Inbox implementasiyası
 - Broker-spesifik biznes məntiqi
 - Servis-spesifik kod
+- Konkret MassTransit registration/configuration
 
 ## 🔧 Tələblər
 
