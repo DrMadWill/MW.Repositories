@@ -8,15 +8,12 @@
         <Authors>Dr.MadWill</Authors>
         <PackageIcon>avatar.png</PackageIcon>
         <RepositoryUrl>https://github.com/DrMadWill/MW.Repositories</RepositoryUrl>
+        <Version>1.0.1</Version>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\MW.Core\MW.Core.csproj" />
-        <ProjectReference Include="..\MW.Persistence.Abstractions\MW.Persistence.Abstractions.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.4" />
+        <PackageReference Include="MW.Persistence.Abstractions" Version="1.0.0" />
     </ItemGroup>
 
     <ItemGroup>

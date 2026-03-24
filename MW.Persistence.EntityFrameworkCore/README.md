@@ -103,3 +103,4 @@ await scope.CommitAsync();
 ### Extension Points
 
 All public methods are `virtual` for override in derived classes. Constructor-injected `DbContext` enables testability.
+
