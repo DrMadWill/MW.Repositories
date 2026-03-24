@@ -1,4 +1,4 @@
-namespace MW.BuildingBlocks.Observability;
+namespace MW.Messaging.Observability;
 
 /// <summary>
 /// Shared observability model for structured event publish/consume logging.

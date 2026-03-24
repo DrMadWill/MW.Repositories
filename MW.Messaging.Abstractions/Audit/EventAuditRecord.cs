@@ -1,4 +1,4 @@
-namespace MW.BuildingBlocks.Audit;
+namespace MW.Messaging.Audit;
 
 /// <summary>
 /// Optional audit-journal record for teams that decide to persist event history

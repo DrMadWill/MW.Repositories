@@ -1,4 +1,4 @@
-namespace MW.BuildingBlocks.Constants;
+namespace MW.Messaging.Constants;
 
 /// <summary>
 /// Shared constants for event directions used in audit records and logging.

@@ -1,4 +1,4 @@
-namespace MW.BuildingBlocks.Messaging;
+namespace MW.Messaging.Messaging;
 
 /// <summary>
 /// Shared consumer-side metadata model for exposing message-related context to business/application code.

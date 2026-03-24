@@ -4,6 +4,8 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <RootNamespace>MW.Messaging</RootNamespace>
+        <AssemblyName>MW.Messaging.Abstractions</AssemblyName>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Authors>Dr.MadWill</Authors>
         <PackageIcon>avatar.png</PackageIcon>

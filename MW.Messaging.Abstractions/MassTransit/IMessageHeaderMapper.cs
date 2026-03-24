@@ -1,4 +1,4 @@
-namespace MW.BuildingBlocks.MassTransit;
+namespace MW.Messaging.MassTransit;
 
 /// <summary>
 /// Abstraction responsible for mapping shared metadata models into MassTransit headers
@@ -8,7 +8,7 @@ namespace MW.BuildingBlocks.MassTransit;
 public interface IMessageHeaderMapper
 {
     /// <summary>
-    /// Maps the properties of a <see cref="MW.BuildingBlocks.Messaging.PublishContextModel"/>
+    /// Maps the properties of a <see cref="MW.Messaging.Messaging.PublishContextModel"/>
     /// into a dictionary of message headers suitable for MassTransit publish/send operations.
     /// </summary>
     /// <param name="context">The publish context model containing metadata to map.</param>
@@ -17,9 +17,9 @@ public interface IMessageHeaderMapper
 
     /// <summary>
     /// Extracts message headers from a consumed message and maps them into a
-    /// <see cref="MW.BuildingBlocks.Messaging.ConsumerContextModel"/>.
+    /// <see cref="MW.Messaging.Messaging.ConsumerContextModel"/>.
     /// </summary>
     /// <param name="headers">The message headers from the consumed message.</param>
-    /// <returns>A populated <see cref="MW.BuildingBlocks.Messaging.ConsumerContextModel"/>.</returns>
+    /// <returns>A populated <see cref="MW.Messaging.Messaging.ConsumerContextModel"/>.</returns>
     Messaging.ConsumerContextModel MapFromHeaders(IDictionary<string, object> headers);
 }

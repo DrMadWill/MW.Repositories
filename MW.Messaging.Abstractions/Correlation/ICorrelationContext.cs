@@ -1,4 +1,4 @@
-namespace MW.BuildingBlocks.Correlation;
+namespace MW.Messaging.Correlation;
 
 /// <summary>
 /// Shared abstraction for distributed tracing and request correlation across services.

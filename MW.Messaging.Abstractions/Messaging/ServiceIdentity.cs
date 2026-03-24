@@ -1,4 +1,4 @@
-namespace MW.BuildingBlocks.Messaging;
+namespace MW.Messaging.Messaging;
 
 /// <summary>
 /// Shared model describing the publishing or consuming service identity.

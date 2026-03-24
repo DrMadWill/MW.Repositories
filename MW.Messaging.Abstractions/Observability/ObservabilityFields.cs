@@ -1,4 +1,4 @@
-namespace MW.BuildingBlocks.Observability;
+namespace MW.Messaging.Observability;
 
 /// <summary>
 /// Standard field names for Grafana/Graylog/Loki/Tempo log searches and correlations.
