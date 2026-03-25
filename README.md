@@ -32,6 +32,10 @@
 │                  MW.Messaging.Abstractions                    │
 │   Messaging · Correlation · Observability · MassTransit      │
 │   Audit · Headers · Contracts · Constants                    │
+├─────────────────────────────────────────────────────────────┤
+│                      MW.Identity.Token                        │
+│   ICurrentUser · ClaimsPrincipal Extensions · ClaimConstants  │
+│   SystemRole · DependencyInjection · JWT Claims               │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -215,6 +219,45 @@ public class OrderCreatedEvent : IntegrationEvent
 }
 ```
 
+### JWT İstifadəçi İdentifikasiyası (Identity Token)
+
+```csharp
+using MW.Identity.Token.DependencyInjection;
+
+// Program.cs — servislərin qeydiyyatı
+builder.Services.AddUserTokenManager();
+```
+
+```csharp
+using MW.Identity.Token.Contracts;
+using MW.Identity.Token.Constants;
+
+[ApiController]
+[Route("api/[controller]")]
+public class ProductsController : ControllerBase
+{
+    private readonly ICurrentUser _currentUser;
+
+    public ProductsController(ICurrentUser currentUser)
+    {
+        _currentUser = currentUser;
+    }
+
+    [HttpDelete("{id}")]
+    public IActionResult Delete(int id)
+    {
+        if (!_currentUser.IsAuthenticated)
+            throw new UnauthorizedAccessException();
+
+        if (!_currentUser.IsInRole(SystemRole.SuperAdmin))
+            return Forbid();
+
+        // ... məhsulu sil
+        return NoContent();
+    }
+}
+```
+
 ## 🏗️ Layihə Strukturu
 
 ```
@@ -272,6 +315,13 @@ MW.Repositories/
 │   ├── Constants/                        # EventDirections, EventStatuses
 │   └── Docs/                             # Konvensiya sənədləri
 │
+├── MW.Identity.Token/                    # JWT Identity Management
+│   ├── Constants/                        # ClaimConstants, SystemRole sabitləri
+│   ├── Contracts/                        # ICurrentUser interfeysi
+│   ├── DependencyInjection/              # AddUserTokenManager() extension
+│   ├── Extensions/                       # ClaimsPrincipal extension metodları
+│   └── Services/                         # CurrentUser implementasiyası
+│
 └── MW.Repositories/                      # Wrapper/Meta Project
 ```
 
@@ -283,6 +333,8 @@ MW.Repositories/
 | MediatR | 12.1.1 | MW.Application.Abstractions |
 | CSharpFunctionalExtensions | 3.7.0 | MW.Application.Abstractions |
 | Dr.Pagination | 1.0.1 | MW.Application.Abstractions |
+| Newtonsoft.Json | 13.0.3 | MW.Identity.Token |
+| Microsoft.AspNetCore.App | framework | MW.Identity.Token |
 
 ## 🔧 Build
 
