@@ -24,4 +24,11 @@
     <ProjectReference Include="..\MW.Messaging.Abstractions\MW.Messaging.Abstractions.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="avatar.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
 </Project>
