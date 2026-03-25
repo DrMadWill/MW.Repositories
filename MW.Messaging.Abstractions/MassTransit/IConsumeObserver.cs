@@ -1,4 +1,4 @@
-namespace MW.BuildingBlocks.MassTransit;
+namespace MW.Messaging.MassTransit;
 
 /// <summary>
 /// Abstraction for a reusable consume observer that performs structured logging

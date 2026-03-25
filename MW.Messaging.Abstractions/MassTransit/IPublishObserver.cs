@@ -1,4 +1,4 @@
-namespace MW.BuildingBlocks.MassTransit;
+namespace MW.Messaging.MassTransit;
 
 /// <summary>
 /// Abstraction for a reusable publish observer that performs structured logging

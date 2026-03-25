@@ -1,4 +1,4 @@
-namespace MW.BuildingBlocks.Contracts;
+namespace MW.Messaging.Contracts;
 
 /// <summary>
 /// Defines the standard contract for integration events exchanged between microservices.

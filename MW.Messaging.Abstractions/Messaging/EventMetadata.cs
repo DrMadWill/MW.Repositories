@@ -1,4 +1,4 @@
-namespace MW.BuildingBlocks.Messaging;
+namespace MW.Messaging.Messaging;
 
 /// <summary>
 /// Reusable metadata model for event-related cross-cutting information.

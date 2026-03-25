@@ -1,4 +1,4 @@
-namespace MW.BuildingBlocks.Contracts;
+namespace MW.Messaging.Contracts;
 
 /// <summary>
 /// Base implementation of <see cref="IIntegrationEvent"/> providing sensible defaults

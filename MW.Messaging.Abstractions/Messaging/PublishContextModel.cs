@@ -1,4 +1,4 @@
-namespace MW.BuildingBlocks.Messaging;
+namespace MW.Messaging.Messaging;
 
 /// <summary>
 /// Shared publish metadata model used before mapping data into MassTransit headers/context.

@@ -1,4 +1,4 @@
-namespace MW.BuildingBlocks.Headers;
+namespace MW.Messaging.Headers;
 
 /// <summary>
 /// Shared constants for message header names used when publishing and consuming
