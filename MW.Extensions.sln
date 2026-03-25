@@ -36,6 +36,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Message", "Message", "{6208
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MW.Messaging.MassTransit", "MW.Messaging.MassTransit\MW.Messaging.MassTransit.csproj", "{D66D44E2-3A7E-4324-B6D5-99E7F034DBD1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MW.Messaging.MassTransit.Tests", "tests\MW.Messaging.MassTransit.Tests\MW.Messaging.MassTransit.Tests.csproj", "{EC670E98-B60D-4434-9A07-520CD2CC7CFA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -202,6 +204,18 @@ Global
 		{D66D44E2-3A7E-4324-B6D5-99E7F034DBD1}.Release|x64.Build.0 = Release|Any CPU
 		{D66D44E2-3A7E-4324-B6D5-99E7F034DBD1}.Release|x86.ActiveCfg = Release|Any CPU
 		{D66D44E2-3A7E-4324-B6D5-99E7F034DBD1}.Release|x86.Build.0 = Release|Any CPU
+		{EC670E98-B60D-4434-9A07-520CD2CC7CFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC670E98-B60D-4434-9A07-520CD2CC7CFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC670E98-B60D-4434-9A07-520CD2CC7CFA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EC670E98-B60D-4434-9A07-520CD2CC7CFA}.Debug|x64.Build.0 = Debug|Any CPU
+		{EC670E98-B60D-4434-9A07-520CD2CC7CFA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EC670E98-B60D-4434-9A07-520CD2CC7CFA}.Debug|x86.Build.0 = Debug|Any CPU
+		{EC670E98-B60D-4434-9A07-520CD2CC7CFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC670E98-B60D-4434-9A07-520CD2CC7CFA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC670E98-B60D-4434-9A07-520CD2CC7CFA}.Release|x64.ActiveCfg = Release|Any CPU
+		{EC670E98-B60D-4434-9A07-520CD2CC7CFA}.Release|x64.Build.0 = Release|Any CPU
+		{EC670E98-B60D-4434-9A07-520CD2CC7CFA}.Release|x86.ActiveCfg = Release|Any CPU
+		{EC670E98-B60D-4434-9A07-520CD2CC7CFA}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -220,5 +234,6 @@ Global
 		{F6DBD589-05D8-41CD-B7DE-0B824B955ADF} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{32638753-758A-4EC7-9E53-716012A91DDC} = {6208DFA6-DA78-451C-B7DC-11D136A4C64A}
 		{D66D44E2-3A7E-4324-B6D5-99E7F034DBD1} = {6208DFA6-DA78-451C-B7DC-11D136A4C64A}
+		{EC670E98-B60D-4434-9A07-520CD2CC7CFA} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 EndGlobal
