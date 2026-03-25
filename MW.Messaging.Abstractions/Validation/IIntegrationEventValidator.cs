@@ -23,5 +23,7 @@ public interface IIntegrationEventValidator
     /// Throws an exception if the event does not satisfy the rules.
     /// </summary>
     /// <param name="integrationEvent">The integration event to validate.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="integrationEvent"/> is <c>null</c>.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the event does not satisfy required contract rules.</exception>
     void Validate(Contracts.IIntegrationEvent integrationEvent);
 }

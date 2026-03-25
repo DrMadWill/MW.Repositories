@@ -16,8 +16,9 @@ namespace MW.Messaging.Context;
 public interface IPublishContextProvider
 {
     /// <summary>
-    /// Creates a publish context model populated from the current execution flow.
+    /// Creates a new publish context model populated from the current execution flow.
+    /// A new instance is returned on each invocation.
     /// </summary>
-    /// <returns>A <see cref="Messaging.PublishContextModel"/> containing current metadata.</returns>
+    /// <returns>A new <see cref="Messaging.PublishContextModel"/> containing current metadata.</returns>
     Messaging.PublishContextModel Create();
 }

@@ -11,6 +11,11 @@ namespace MW.Messaging.Context;
 /// (e.g., from <c>ConsumeContext</c> headers) belongs to the implementation layer,
 /// not to this contract.
 /// </para>
+/// <para>
+/// Implementations should be scoped per consumer execution. The <see cref="Current"/> property
+/// is expected to be set by the transport integration at the start of each consumer pipeline
+/// and is safe for scoped runtime usage within that pipeline.
+/// </para>
 /// </summary>
 public interface IMessageContextAccessor
 {

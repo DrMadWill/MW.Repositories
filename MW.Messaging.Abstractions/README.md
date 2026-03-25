@@ -299,6 +299,7 @@ public class MyHeaderMapper : IMessageHeaderMapper
 | [Event Adlandırma Konvensiyası](Docs/EventNamingConvention.md) | Event adlandırma və versiyalama qaydaları |
 | [Event Loglama Qaydaları](Docs/EventLoggingGuidelines.md) | Strukturlaşdırılmış event loglama təlimatları |
 | [Fault Event İdarəetmə](Docs/FaultEventHandlingGuideline.md) | MassTransit `Fault<T>` idarəetmə qaydaları |
+| [Arxitektura Qeydləri](Docs/ArchitectureNotes.md) | Gələcək abstraksiyalar üçün qiymətləndirmə qeydləri |
 
 ## 🏛️ Arxitektura Qərarı
 
