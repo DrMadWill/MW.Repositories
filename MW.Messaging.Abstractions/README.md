@@ -31,6 +31,10 @@ dotnet add package MW.Messaging.Abstractions
 ## ✅ Scope (Bu paketin məsuliyyəti)
 
 - **İnteqrasiya event kontraktları** — `IIntegrationEvent`, `IntegrationEvent`
+- **Event publishing abstraksiyası** — `IIntegrationEventPublisher`
+- **Mesaj kontekst abstraksiyaları** — `IMessageContextAccessor`, `IPublishContextProvider`, `IMessageExecutionContext`
+- **Servis kimliyi** — `IServiceIdentityProvider`, `ServiceIdentity`
+- **Event validasiya** — `IIntegrationEventValidator`, `IEventNamingConvention`
 - **Mesaj header-ləri** — `MessageHeaders` standart header sabitləri
 - **Korrelyasiya** — `ICorrelationContext` distributed tracing abstraksiyası
 - **Publish/consume kontekst modelləri** — `PublishContextModel`, `ConsumerContextModel`
@@ -56,13 +60,17 @@ dotnet add package MW.Messaging.Abstractions
 MW.Messaging.Abstractions/
 ├── Audit/              # Opsional event audit jurnalı
 ├── Constants/          # Paylaşılan sabitlər (istiqamət, status)
+├── Context/            # Mesaj kontekst abstraksiyaları (accessor, provider, execution)
 ├── Contracts/          # İnteqrasiya event kontraktları
 ├── Correlation/        # Distributed tracing korrelyasiya
 ├── Docs/               # Konvensiya və qaydalar sənədləri
 ├── Headers/            # Mesaj header sabitləri
+├── Identity/           # Servis kimliyi abstraksiyaları
 ├── MassTransit/        # MassTransit abstraksiyaları (observer, mapper)
 ├── Messaging/          # Mesajlaşma modelləri (metadata, kontekst)
-└── Observability/      # Müşahidəçilik modelləri və sahə standartları
+├── Observability/      # Müşahidəçilik modelləri və sahə standartları
+├── Publishing/         # İnteqrasiya event publishing abstraksiyaları
+└── Validation/         # Event validasiya və adlandırma konvensiyası abstraksiyaları
 ```
 
 ## 🔑 Əsas Konseptlər
@@ -70,6 +78,13 @@ MW.Messaging.Abstractions/
 | Konsept | Təsvir |
 |---------|--------|
 | **İnteqrasiya Event** | Mikroservislər arası asınxron kommunikasiya kontraktı |
+| **Event Publishing** | `IIntegrationEventPublisher` vasitəsilə transport-agnostik event yayımı |
+| **Mesaj Kontekst** | `IMessageContextAccessor` ilə consumer-daxili metadata çıxışı |
+| **Execution Kontekst** | `IMessageExecutionContext` ilə mesaj-əsaslı axınlar üçün unified metadata |
+| **Publish Kontekst** | `IPublishContextProvider` ilə execution flow-dan publish metadata yaratma |
+| **Servis Kimliyi** | `IServiceIdentityProvider` ilə standart servis identifikasiyası |
+| **Event Validasiya** | `IIntegrationEventValidator` ilə event kontrakt qaydalarının enforce edilməsi |
+| **Naming Konvensiya** | `IEventNamingConvention` ilə event adlandırma normallaşdırması |
 | **Korrelyasiya** | Distributed tracing üçün request/event əlaqələndirmə |
 | **Header Mapping** | Mesaj metadata-sının transport header-lərinə çevrilməsi |
 | **Observability** | Strukturlaşdırılmış loglama və monitorinq standartları |
@@ -244,6 +259,13 @@ public class MyHeaderMapper : IMessageHeaderMapper
 |-----------|-----------|--------|
 | `IIntegrationEvent` | `MW.Messaging.Contracts` | Mikroservislər arası event kontraktı |
 | `ICorrelationContext` | `MW.Messaging.Correlation` | Distributed tracing korrelyasiya abstraksiyası |
+| `IIntegrationEventPublisher` | `MW.Messaging.Publishing` | Application-facing event publishing kontraktı |
+| `IMessageContextAccessor` | `MW.Messaging.Context` | Consumer daxilində scoped mesaj kontekstinə read-only çıxış |
+| `IPublishContextProvider` | `MW.Messaging.Context` | Cari execution flow-dan publish kontekst metadatası yaratma |
+| `IMessageExecutionContext` | `MW.Messaging.Context` | Mesaj-əsaslı axınlar üçün transport-agnostik execution metadata |
+| `IServiceIdentityProvider` | `MW.Messaging.Identity` | Servis kimliyi metadatasını standart şəkildə təmin etmə |
+| `IIntegrationEventValidator` | `MW.Messaging.Validation` | İnteqrasiya event kontrakt qaydalarının validasiyası |
+| `IEventNamingConvention` | `MW.Messaging.Validation` | Event adlandırma və versiya normallaşdırma konvensiyası |
 | `IMessageHeaderMapper` | `MW.Messaging.MassTransit` | MassTransit header mapping kontraktı |
 | `IPublishObserver` | `MW.Messaging.MassTransit` | Publish loglama observer interfeysi |
 | `IConsumeObserver` | `MW.Messaging.MassTransit` | Consume loglama observer interfeysi |
@@ -286,6 +308,31 @@ Bu layihə aşağıdakı prinsiplərə əsaslanır:
 - **MassTransit Consumer Outbox / InboxState** dublikat aşkarlama həllidir
 - **MW.Messaging.Abstractions** bu mexanizmləri manual olaraq təkrarlamamalıdır
 - **Event görünürlüyü** strukturlaşdırılmış loglama, korrelyasiya, fault idarəetmə və müşahidəçilik inteqrasiyaları vasitəsilə təmin olunmalıdır
+
+## 🔒 Abstractions vs Implementation Boundary
+
+**Bu paket (MW.Messaging.Abstractions) ehtiva edir:**
+
+- Kontraktlar (`IIntegrationEvent`, `IntegrationEvent`)
+- Metadata modelləri (`EventMetadata`, `ServiceIdentity`, `PublishContextModel`, `ConsumerContextModel`)
+- Çıxış abstraksiyaları (`IMessageContextAccessor`, `IMessageExecutionContext`, `IPublishContextProvider`, `IServiceIdentityProvider`)
+- Publishing abstraksiyası (`IIntegrationEventPublisher`)
+- Validasiya abstraksiyaları (`IIntegrationEventValidator`, `IEventNamingConvention`)
+- Korrelyasiya (`ICorrelationContext`)
+- MassTransit interfeys kontraktları (observer, mapper)
+- Müşahidəçilik modelləri və sabitlər
+
+**Bu paket ehtiva etmir (gələcəkdə MW.Messaging.MassTransit-da olacaq):**
+
+- MassTransit registration / DI konfiqurasiyası
+- RabbitMQ / broker bağlantısı və setup
+- Publish / consume filter implementasiyaları
+- Konkret observer implementasiyaları
+- Header mapper implementasiyası
+- Outbox konfiqurasiyası
+- Queue/endpoint naming implementasiyası
+
+Bu sərhəd təmin edir ki, application kodu yalnız abstraksiyalardan asılı olsun və transport-spesifik detallar implementasiya layerində qalsın.
 
 ## ⚠️ Bu Layihə Ehtiva Etmir
 
