@@ -27,7 +27,7 @@ public class ServiceEndpointNameFormatterDetailedTests
         var result = formatter.SanitizeName(consumer);
 
         result.Should().StartWith(prefix + "-");
-        result.Should().NotContainAny("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z");
+        result.Should().NotMatchRegex("[A-Z]");
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class ServiceEndpointNameFormatterDetailedTests
         var result = formatter.Consumer<TestConsumer>();
 
         result.Should().StartWith("order-service-");
-        result.Should().NotContainAny("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z");
+        result.Should().NotMatchRegex("[A-Z]");
     }
 
     private class TestConsumer : global::MassTransit.IConsumer<TestMessage>

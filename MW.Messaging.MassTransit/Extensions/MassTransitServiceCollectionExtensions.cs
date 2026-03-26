@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using MW.Messaging.Context;
 using MW.Messaging.Identity;
 using MW.Messaging.MassTransit.Context;
@@ -122,12 +123,19 @@ public static class MassTransitServiceCollectionExtensions
                     // Exception type filtering
                     if (retryOptions.ExceptionTypeFilters is { Length: > 0 })
                     {
+                        var logger = context.GetService<ILoggerFactory>()?.CreateLogger("MW.Messaging.MassTransit");
                         foreach (var typeName in retryOptions.ExceptionTypeFilters)
                         {
                             var exceptionType = Type.GetType(typeName);
                             if (exceptionType != null && typeof(Exception).IsAssignableFrom(exceptionType))
                             {
                                 retryConfig.Handle(exceptionType);
+                            }
+                            else
+                            {
+                                logger?.LogWarning(
+                                    "Retry exception type filter '{TypeName}' could not be resolved. Skipping.",
+                                    typeName);
                             }
                         }
                     }
