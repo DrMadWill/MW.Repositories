@@ -11,4 +11,9 @@ public class ScopedMessageContextAccessor : IMessageContextAccessor
     {
         Current = context ?? throw new ArgumentNullException(nameof(context));
     }
+
+    internal void ClearContext()
+    {
+        Current = null;
+    }
 }
