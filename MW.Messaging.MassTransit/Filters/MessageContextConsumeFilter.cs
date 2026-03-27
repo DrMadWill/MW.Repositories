@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using MassTransit;
 using MW.Messaging.Headers;
+using MW.Messaging.MassTransit.Tracing;
 
 namespace MW.Messaging.MassTransit.Filters;
 
@@ -33,8 +34,11 @@ public class MessageContextConsumeFilter<TMessage> : IFilter<ConsumeContext<TMes
 
         _accessor.SetContext(consumerContext);
 
-        // Enrich current Activity with consume metadata for distributed tracing
-        var activity = Activity.Current;
+        using var activity = MessagingActivitySource.Source.StartActivity(
+            "messaging.consume",
+            ActivityKind.Consumer);
+
+        // Enrich activity with consume metadata for distributed tracing
         if (activity != null)
         {
             activity.SetTag("messaging.correlation_id", consumerContext.CorrelationId);

@@ -19,14 +19,4 @@ public class RabbitMqOptions
     /// Must be explicitly configured for non-development environments.
     /// </summary>
     public string Password { get; set; } = "guest";
-
-    public bool UseSsl { get; set; }
-    public string? SslServerName { get; set; }
-    public string? SslCertificatePath { get; set; }
-
-    /// <summary>
-    /// When true, bypasses SSL certificate validation.
-    /// WARNING: Only use in development/testing environments.
-    /// </summary>
-    public bool SslTrustCertificate { get; set; }
 }

@@ -15,10 +15,6 @@ public class OptionsTests
         options.VirtualHost.Should().Be("/");
         options.Username.Should().Be("guest");
         options.Password.Should().Be("guest");
-        options.UseSsl.Should().BeFalse();
-        options.SslServerName.Should().BeNull();
-        options.SslCertificatePath.Should().BeNull();
-        options.SslTrustCertificate.Should().BeFalse();
     }
 
     [Fact]
@@ -85,9 +81,7 @@ public class OptionsTests
             Port = 5673,
             VirtualHost = "/production",
             Username = "app_user",
-            Password = "secure_pass",
-            UseSsl = true,
-            SslServerName = "rabbitmq.prod.internal"
+            Password = "secure_pass"
         };
 
         options.Host.Should().Be("rabbitmq.prod.internal");
@@ -95,7 +89,5 @@ public class OptionsTests
         options.VirtualHost.Should().Be("/production");
         options.Username.Should().Be("app_user");
         options.Password.Should().Be("secure_pass");
-        options.UseSsl.Should().BeTrue();
-        options.SslServerName.Should().Be("rabbitmq.prod.internal");
     }
 }

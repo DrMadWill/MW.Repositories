@@ -145,7 +145,7 @@ public class MassTransitServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddMassTransitMessaging_Should_NotRegisterServiceIdentityProvider_WhenServiceNameEmpty()
+    public void AddMassTransitMessaging_Should_RegisterServiceIdentityProvider_WhenServiceNameEmpty()
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -159,7 +159,8 @@ public class MassTransitServiceCollectionExtensionsTests
         var descriptor = services.FirstOrDefault(
             d => d.ServiceType == typeof(IServiceIdentityProvider));
 
-        descriptor.Should().BeNull();
+        descriptor.Should().NotBeNull();
+        descriptor!.Lifetime.Should().Be(ServiceLifetime.Singleton);
     }
 
     [Fact]
