@@ -1,11 +1,17 @@
+using System.Diagnostics;
 using System.Reflection;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using MW.Messaging.Context;
+using MW.Messaging.Identity;
 using MW.Messaging.MassTransit.Context;
 using MW.Messaging.MassTransit.Filters;
+using MW.Messaging.MassTransit.Health;
+using MW.Messaging.MassTransit.Identity;
 using MW.Messaging.MassTransit.Naming;
 using MW.Messaging.MassTransit.Observers;
 using MW.Messaging.MassTransit.Options;
@@ -29,11 +35,21 @@ public static class MassTransitServiceCollectionExtensions
         services.TryAddScoped<ScopedMessageContextAccessor>();
         services.TryAddScoped<IMessageContextAccessor>(sp => sp.GetRequiredService<ScopedMessageContextAccessor>());
 
+        // Register IMessageExecutionContext mapped from consumer context
+        services.TryAddScoped<IMessageExecutionContext, MassTransitMessageExecutionContext>();
+
         // Register header mapper
         services.TryAddSingleton<MW.Messaging.MassTransit.IMessageHeaderMapper, DefaultMessageHeaderMapper>();
 
         // Register publish context provider
         services.TryAddScoped<IPublishContextProvider, DefaultPublishContextProvider>();
+
+        // Register default service identity provider from configuration
+        if (!string.IsNullOrWhiteSpace(options.Options.ServiceName))
+        {
+            services.TryAddSingleton<IServiceIdentityProvider>(
+                _ => new ConfigurationServiceIdentityProvider(options.Options));
+        }
 
         // Register integration event publisher
         services.TryAddScoped<IIntegrationEventPublisher, Publishing.MassTransitIntegrationEventPublisher>();
@@ -103,6 +119,26 @@ public static class MassTransitServiceCollectionExtensions
                     {
                         retryConfig.Interval(retryOptions.RetryCount, TimeSpan.FromSeconds(2));
                     }
+
+                    // Exception type filtering
+                    if (retryOptions.ExceptionTypeFilters is { Length: > 0 })
+                    {
+                        var logger = context.GetService<ILoggerFactory>()?.CreateLogger("MW.Messaging.MassTransit");
+                        foreach (var typeName in retryOptions.ExceptionTypeFilters)
+                        {
+                            var exceptionType = Type.GetType(typeName);
+                            if (exceptionType != null && typeof(Exception).IsAssignableFrom(exceptionType))
+                            {
+                                retryConfig.Handle(exceptionType);
+                            }
+                            else
+                            {
+                                logger?.LogWarning(
+                                    "Retry exception type filter '{TypeName}' could not be resolved. Skipping.",
+                                    typeName);
+                            }
+                        }
+                    }
                 });
 
                 // Delayed redelivery policy
@@ -156,10 +192,26 @@ public static class MassTransitServiceCollectionExtensions
                 Password = Uri.EscapeDataString(rabbitMqOptions.Password)
             };
             services.AddHealthChecks()
-                .AddRabbitMQ(uriBuilder.Uri, name: "rabbitmq");
+                .AddRabbitMQ(uriBuilder.Uri, name: "rabbitmq")
+                .AddCheck<MassTransitBusHealthCheck>("masstransit-bus");
         }
 
         return services;
+    }
+
+    /// <summary>
+    /// Binds MassTransitOptions from a configuration section.
+    /// </summary>
+    public static MassTransitMessagingOptions BindOptions(
+        this MassTransitMessagingOptions messagingOptions,
+        IConfiguration configuration,
+        string sectionName = MassTransitOptions.SectionName)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        var section = configuration.GetSection(sectionName);
+        section.Bind(messagingOptions.Options);
+        return messagingOptions;
     }
 
     /// <summary>
@@ -210,6 +262,11 @@ public class MassTransitMessagingOptions
         return this;
     }
 
+    /// <summary>
+    /// Configures transactional outbox with Entity Framework Core.
+    /// This is the recommended single entry point for outbox configuration.
+    /// Enables publisher-side outbox by default.
+    /// </summary>
     public MassTransitMessagingOptions UseEntityFrameworkOutbox<TDbContext>(
         Action<IEntityFrameworkOutboxConfigurator>? configureOutbox = null)
         where TDbContext : DbContext

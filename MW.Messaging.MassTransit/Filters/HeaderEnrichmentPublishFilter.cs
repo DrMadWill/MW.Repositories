@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using MassTransit;
 using MW.Messaging.Context;
 using MessageHeaders = MW.Messaging.Headers.MessageHeaders;
@@ -38,6 +39,17 @@ public class HeaderEnrichmentPublishFilter<TMessage> : IFilter<PublishContext<TM
 
             if (!context.Headers.TryGetHeader(MessageHeaders.EventVersion, out _))
                 context.Headers.Set(MessageHeaders.EventVersion, integrationEvent.EventVersion);
+        }
+
+        // Enrich current Activity with publish metadata for distributed tracing
+        var activity = Activity.Current;
+        if (activity != null)
+        {
+            activity.SetTag("messaging.correlation_id", publishContext.CorrelationId);
+            activity.SetTag("messaging.source_service", publishContext.SourceService);
+
+            if (!string.IsNullOrWhiteSpace(publishContext.TraceId))
+                activity.SetTag("messaging.trace_id", publishContext.TraceId);
         }
 
         await next.Send(context);

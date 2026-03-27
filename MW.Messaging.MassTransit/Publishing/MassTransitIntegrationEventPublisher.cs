@@ -1,9 +1,9 @@
 using MassTransit;
 using MW.Messaging.Contracts;
 using MW.Messaging.Context;
-using MessageHeaders = MW.Messaging.Headers.MessageHeaders;
 using MW.Messaging.Messaging;
 using MW.Messaging.Publishing;
+using MW.Messaging.Validation;
 
 namespace MW.Messaging.MassTransit.Publishing;
 
@@ -11,16 +11,16 @@ public class MassTransitIntegrationEventPublisher : IIntegrationEventPublisher
 {
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IPublishContextProvider _contextProvider;
-    private readonly MW.Messaging.MassTransit.IMessageHeaderMapper _headerMapper;
+    private readonly IIntegrationEventValidator? _validator;
 
     public MassTransitIntegrationEventPublisher(
         IPublishEndpoint publishEndpoint,
         IPublishContextProvider contextProvider,
-        MW.Messaging.MassTransit.IMessageHeaderMapper headerMapper)
+        IIntegrationEventValidator? validator = null)
     {
         _publishEndpoint = publishEndpoint ?? throw new ArgumentNullException(nameof(publishEndpoint));
         _contextProvider = contextProvider ?? throw new ArgumentNullException(nameof(contextProvider));
-        _headerMapper = headerMapper ?? throw new ArgumentNullException(nameof(headerMapper));
+        _validator = validator;
     }
 
     public Task PublishAsync(IIntegrationEvent integrationEvent, CancellationToken cancellationToken = default)
@@ -35,16 +35,8 @@ public class MassTransitIntegrationEventPublisher : IIntegrationEventPublisher
         ArgumentNullException.ThrowIfNull(integrationEvent);
         ArgumentNullException.ThrowIfNull(context);
 
-        var headers = _headerMapper.MapToHeaders(context);
-        headers[MessageHeaders.EventName] = integrationEvent.EventName;
-        headers[MessageHeaders.EventVersion] = integrationEvent.EventVersion;
+        _validator?.Validate(integrationEvent);
 
-        await _publishEndpoint.Publish(integrationEvent, integrationEvent.GetType(), ctx =>
-        {
-            foreach (var header in headers)
-            {
-                ctx.Headers.Set(header.Key, header.Value);
-            }
-        }, cancellationToken);
+        await _publishEndpoint.Publish(integrationEvent, integrationEvent.GetType(), cancellationToken);
     }
 }

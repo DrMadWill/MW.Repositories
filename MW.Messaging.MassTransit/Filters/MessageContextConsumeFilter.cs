@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using MassTransit;
 using MW.Messaging.Headers;
 
@@ -32,7 +33,26 @@ public class MessageContextConsumeFilter<TMessage> : IFilter<ConsumeContext<TMes
 
         _accessor.SetContext(consumerContext);
 
-        await next.Send(context);
+        // Enrich current Activity with consume metadata for distributed tracing
+        var activity = Activity.Current;
+        if (activity != null)
+        {
+            activity.SetTag("messaging.correlation_id", consumerContext.CorrelationId);
+            activity.SetTag("messaging.source_service", consumerContext.SourceService);
+            activity.SetTag("messaging.event_name", consumerContext.EventName);
+
+            if (!string.IsNullOrWhiteSpace(consumerContext.TraceId))
+                activity.SetTag("messaging.trace_id", consumerContext.TraceId);
+        }
+
+        try
+        {
+            await next.Send(context);
+        }
+        finally
+        {
+            _accessor.ClearContext();
+        }
     }
 
     public void Probe(ProbeContext context)

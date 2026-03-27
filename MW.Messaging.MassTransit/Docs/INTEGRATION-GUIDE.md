@@ -11,26 +11,30 @@ Reference `MW.Messaging.MassTransit` in your service project.
 ```csharp
 builder.Services.AddMassTransitMessaging(options =>
 {
-    // Configure RabbitMQ connection
-    options.Options.RabbitMq.Host = "localhost";
-    options.Options.RabbitMq.Port = 5672;
-    options.Options.RabbitMq.Username = "guest";
-    options.Options.RabbitMq.Password = "guest";
+    // Bind options from configuration (recommended)
+    options.BindOptions(builder.Configuration);
 
-    // Service name for endpoint naming
+    // Or configure manually:
+    // options.Options.RabbitMq.Host = "localhost";
+    // options.Options.RabbitMq.Port = 5672;
+    // options.Options.RabbitMq.Username = "guest";
+    // options.Options.RabbitMq.Password = "guest";
+
+    // Service name for endpoint naming and identity
     options.Options.ServiceName = "order-service";
 
     // Register consumers from assembly
     options.AddConsumersFromAssembly(typeof(Program).Assembly);
 
-    // Optional: Configure retry
+    // Optional: Configure retry with exception filtering
     options.Options.Retry.RetryCount = 3;
     options.Options.Retry.RetryIntervalsInSeconds = [1, 2, 5];
+    options.Options.Retry.ExceptionTypeFilters = ["System.TimeoutException"];
 
     // Optional: Configure redelivery
     options.Options.Redelivery.RedeliveryIntervalsInSeconds = [10, 30, 60];
 
-    // Optional: Enable transactional outbox
+    // Optional: Enable transactional outbox (includes inbox-state)
     options.UseEntityFrameworkOutbox<AppDbContext>();
 
     // Optional: Health checks (enabled by default)
@@ -38,7 +42,32 @@ builder.Services.AddMassTransitMessaging(options =>
 });
 ```
 
-### 3. Publish Integration Events
+### 3. Configuration Binding (appsettings.json)
+
+```json
+{
+  "Messaging": {
+    "ServiceName": "order-service",
+    "EnableHealthChecks": true,
+    "RabbitMq": {
+      "Host": "localhost",
+      "Port": 5672,
+      "Username": "guest",
+      "Password": "guest"
+    },
+    "Retry": {
+      "RetryCount": 3,
+      "RetryIntervalsInSeconds": [1, 2, 5],
+      "ExceptionTypeFilters": ["System.TimeoutException"]
+    },
+    "Redelivery": {
+      "RedeliveryIntervalsInSeconds": [10, 30, 60]
+    }
+  }
+}
+```
+
+### 4. Publish Integration Events
 
 ```csharp
 public class OrderService
@@ -63,34 +92,34 @@ public class OrderService
 }
 ```
 
-### 4. Create a Consumer
+### 5. Create a Consumer
 
 ```csharp
 public class OrderPlacedConsumer : IConsumer<OrderPlacedEvent>
 {
-    private readonly IMessageContextAccessor _contextAccessor;
+    private readonly IMessageExecutionContext _executionContext;
 
-    public OrderPlacedConsumer(IMessageContextAccessor contextAccessor)
+    public OrderPlacedConsumer(IMessageExecutionContext executionContext)
     {
-        _contextAccessor = contextAccessor;
+        _executionContext = executionContext;
     }
 
     public async Task Consume(ConsumeContext<OrderPlacedEvent> context)
     {
         // Access propagated context (correlation, tenant, user, etc.)
-        var messageContext = _contextAccessor.Current;
-        var correlationId = messageContext?.CorrelationId;
+        var correlationId = _executionContext.CorrelationId;
+        var tenantId = _executionContext.TenantId;
 
         // ... handle the event ...
     }
 }
 ```
 
-### 5. Header Propagation
+### 6. Header Propagation
 
 Headers are automatically propagated through:
 - **Publish filter**: Enriches outgoing messages with correlation, causation, trace, tenant, user, and service metadata
-- **Consume filter**: Reads incoming headers and populates `IMessageContextAccessor`
+- **Consume filter**: Reads incoming headers, populates `IMessageContextAccessor`, and clears after execution
 
 Standard headers:
 - `x-correlation-id`
@@ -102,7 +131,7 @@ Standard headers:
 - `x-event-name`
 - `x-event-version`
 
-### 6. Outbox Configuration
+### 7. Outbox Configuration
 
 For transactional outbox support with EF Core:
 
@@ -113,7 +142,10 @@ options.UseEntityFrameworkOutbox<AppDbContext>(outbox =>
 });
 ```
 
-### 7. Custom Observer Registration
+This is the single recommended entry point for outbox configuration.
+It enables both publisher-side outbox (UseBusOutbox) by default.
+
+### 8. Custom Observer Registration
 
 Register custom observers for structured logging:
 
@@ -123,9 +155,58 @@ services.AddSingleton<MW.Messaging.MassTransit.IConsumeObserver, MyCustomConsume
 services.AddSingleton<MW.Messaging.MassTransit.ISendObserver, MyCustomSendObserver>();
 ```
 
-### 8. Endpoint Naming
+### 9. Endpoint Naming
 
 Endpoints follow kebab-case with optional service prefix:
 - Service: `order-service`
 - Consumer: `OrderPlacedConsumer`
 - Queue: `order-service-order-placed`
+
+---
+
+## Service Registration Reference
+
+### Required Registrations
+
+| Registration | Purpose | Default |
+|---|---|---|
+| `AddMassTransitMessaging()` | Core messaging setup | **Must call** |
+| `options.Options.ServiceName` | Service identity & endpoint naming | Empty string |
+| `options.Options.RabbitMq.*` | RabbitMQ connection settings | localhost/guest |
+
+### Automatically Registered Services
+
+| Service | Lifetime | Description |
+|---|---|---|
+| `IMessageContextAccessor` | Scoped | Read-only access to current consumer context |
+| `IMessageExecutionContext` | Scoped | Transport-agnostic execution metadata |
+| `IPublishContextProvider` | Scoped | Creates publish context from execution flow |
+| `IIntegrationEventPublisher` | Scoped | Publishes integration events via MassTransit |
+| `IMessageHeaderMapper` | Singleton | Maps context models to/from message headers |
+| `IServiceIdentityProvider` | Singleton | Provides service identity (when `ServiceName` is set) |
+| `ScopedMessageContextAccessor` | Scoped | Internal accessor for consume pipeline |
+
+### Optional Registrations (User-Provided)
+
+| Service | Purpose | Notes |
+|---|---|---|
+| `IIntegrationEventValidator` | Validates events before publish | Optional; publisher skips validation if not registered |
+| `ICorrelationContext` | Provides ambient correlation/trace IDs | Optional; auto-generates correlation ID if missing |
+| `IPublishObserver` | Custom publish observability | Optional; no-op if not registered |
+| `IConsumeObserver` | Custom consume observability | Optional; no-op if not registered |
+| `ISendObserver` | Custom send observability | Optional; kept for completeness, may be deferred |
+
+### Optional Configuration
+
+| Feature | How to Enable | Default |
+|---|---|---|
+| Health checks | `options.Options.EnableHealthChecks = true` | Enabled |
+| Retry policy | `options.Options.Retry.*` | 3 retries at [1, 2, 4]s |
+| Exception filtering | `options.Options.Retry.ExceptionTypeFilters` | Not set (all exceptions retried) |
+| Redelivery | `options.Options.Redelivery.*` | 3 redeliveries at [5, 15, 30]s |
+| Transactional outbox | `options.UseEntityFrameworkOutbox<TDbContext>()` | Not enabled |
+| Configuration binding | `options.BindOptions(configuration)` | Manual setup |
+
+### ISendObserver Scope Decision
+
+`ISendObserver` is kept in the current implementation for completeness. It follows the same adapter pattern as publish and consume observers. Service teams may register it if send-flow observability is needed. It can be deferred to a later phase if not required for current use cases.
