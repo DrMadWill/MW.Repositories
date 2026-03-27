@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using MassTransit;
 using MW.Messaging.Context;
+using MW.Messaging.MassTransit.Tracing;
 using MessageHeaders = MW.Messaging.Headers.MessageHeaders;
 
 namespace MW.Messaging.MassTransit.Filters;
@@ -21,6 +22,10 @@ public class HeaderEnrichmentPublishFilter<TMessage> : IFilter<PublishContext<TM
 
     public async Task Send(PublishContext<TMessage> context, IPipe<PublishContext<TMessage>> next)
     {
+        using var activity = MessagingActivitySource.Source.StartActivity(
+            "messaging.publish",
+            ActivityKind.Producer);
+
         var publishContext = _contextProvider.Create();
         var headers = _headerMapper.MapToHeaders(publishContext);
 
@@ -42,7 +47,6 @@ public class HeaderEnrichmentPublishFilter<TMessage> : IFilter<PublishContext<TM
         }
 
         // Enrich current Activity with publish metadata for distributed tracing
-        var activity = Activity.Current;
         if (activity != null)
         {
             activity.SetTag("messaging.correlation_id", publishContext.CorrelationId);

@@ -44,12 +44,11 @@ public static class MassTransitServiceCollectionExtensions
         // Register publish context provider
         services.TryAddScoped<IPublishContextProvider, DefaultPublishContextProvider>();
 
-        // Register default service identity provider from configuration
-        if (!string.IsNullOrWhiteSpace(options.Options.ServiceName))
-        {
-            services.TryAddSingleton<IServiceIdentityProvider>(
-                _ => new ConfigurationServiceIdentityProvider(options.Options));
-        }
+        // Always register a service identity provider.
+        // When ServiceName is configured, use the real value; otherwise register a safe
+        // default that returns an empty identity so downstream code never sees null.
+        services.TryAddSingleton<IServiceIdentityProvider>(
+            _ => new ConfigurationServiceIdentityProvider(options.Options));
 
         // Register integration event publisher
         services.TryAddScoped<IIntegrationEventPublisher, Publishing.MassTransitIntegrationEventPublisher>();
@@ -90,18 +89,6 @@ public static class MassTransitServiceCollectionExtensions
                 {
                     h.Username(rabbitMqOptions.Username);
                     h.Password(rabbitMqOptions.Password);
-
-                    if (rabbitMqOptions.UseSsl)
-                    {
-                        h.UseSsl(s =>
-                        {
-                            if (!string.IsNullOrWhiteSpace(rabbitMqOptions.SslServerName))
-                                s.ServerName = rabbitMqOptions.SslServerName;
-
-                            if (!string.IsNullOrWhiteSpace(rabbitMqOptions.SslCertificatePath))
-                                s.CertificatePath = rabbitMqOptions.SslCertificatePath;
-                        });
-                    }
                 });
 
                 // Retry policy
@@ -185,8 +172,7 @@ public static class MassTransitServiceCollectionExtensions
         if (options.Options.EnableHealthChecks)
         {
             var rabbitMqOptions = options.Options.RabbitMq;
-            var protocol = rabbitMqOptions.UseSsl ? "amqps" : "amqp";
-            var uriBuilder = new UriBuilder(protocol, rabbitMqOptions.Host, rabbitMqOptions.Port, rabbitMqOptions.VirtualHost)
+            var uriBuilder = new UriBuilder("amqp", rabbitMqOptions.Host, rabbitMqOptions.Port, rabbitMqOptions.VirtualHost)
             {
                 UserName = Uri.EscapeDataString(rabbitMqOptions.Username),
                 Password = Uri.EscapeDataString(rabbitMqOptions.Password)
@@ -274,6 +260,25 @@ public class MassTransitMessagingOptions
         OutboxConfigurator = cfg => cfg.AddEntityFrameworkOutbox<TDbContext>(o =>
         {
             o.UseBusOutbox();
+            configureOutbox?.Invoke(o);
+        });
+        return this;
+    }
+
+    /// <summary>
+    /// Configures consumer-side outbox (InboxState) with Entity Framework Core.
+    /// This enables idempotent message delivery on the consumer side.
+    /// Both publisher-side and consumer-side outbox are enabled.
+    /// </summary>
+    public MassTransitMessagingOptions UseEntityFrameworkInboxOutbox<TDbContext>(
+        Action<IEntityFrameworkOutboxConfigurator>? configureOutbox = null)
+        where TDbContext : DbContext
+    {
+        OutboxConfigurator = cfg => cfg.AddEntityFrameworkOutbox<TDbContext>(o =>
+        {
+            o.UseBusOutbox();
+            o.QueryDelay = TimeSpan.FromSeconds(1);
+            o.DuplicateDetectionWindow = TimeSpan.FromMinutes(5);
             configureOutbox?.Invoke(o);
         });
         return this;
