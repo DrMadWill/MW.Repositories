@@ -46,7 +46,7 @@ public class HeaderEnrichmentPublishFilter<TMessage> : IFilter<PublishContext<TM
                 context.Headers.Set(MessageHeaders.EventVersion, integrationEvent.EventVersion);
         }
 
-        // Enrich current Activity with publish metadata for distributed tracing
+        // Enrich activity with publish metadata for distributed tracing
         if (activity != null)
         {
             activity.SetTag("messaging.correlation_id", publishContext.CorrelationId);

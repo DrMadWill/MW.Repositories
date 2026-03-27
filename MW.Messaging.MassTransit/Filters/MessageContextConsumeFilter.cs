@@ -38,7 +38,7 @@ public class MessageContextConsumeFilter<TMessage> : IFilter<ConsumeContext<TMes
             "messaging.consume",
             ActivityKind.Consumer);
 
-        // Enrich current Activity with consume metadata for distributed tracing
+        // Enrich activity with consume metadata for distributed tracing
         if (activity != null)
         {
             activity.SetTag("messaging.correlation_id", consumerContext.CorrelationId);
