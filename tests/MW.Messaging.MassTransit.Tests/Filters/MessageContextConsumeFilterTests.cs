@@ -135,8 +135,65 @@ public class MessageContextConsumeFilterTests
         capturedContext!.MessageId.Should().Be(messageId);
     }
 
+    [Fact]
+    public async Task Send_Should_GenerateMessageId_WhenNull()
+    {
+        var filter = CreateFilter();
+        var consumeContext = CreateConsumeContext(new Dictionary<string, object>(), messageId: null);
+
+        ConsumerContextModel? capturedContext = null;
+        var nextPipe = new Mock<IPipe<ConsumeContext<TestMessage>>>();
+        nextPipe.Setup(p => p.Send(It.IsAny<ConsumeContext<TestMessage>>()))
+            .Callback<ConsumeContext<TestMessage>>(_ =>
+            {
+                capturedContext = _accessor.Current;
+            });
+
+        await filter.Send(consumeContext, nextPipe.Object);
+
+        capturedContext.Should().NotBeNull();
+        capturedContext!.MessageId.Should().NotBe(Guid.Empty);
+    }
+
+    [Fact]
+    public async Task Send_Should_ClearContextAfterException_LeavingNoStaleState()
+    {
+        var filter = CreateFilter();
+        var consumeContext = CreateConsumeContext(new Dictionary<string, object>
+        {
+            [MessageHeaders.CorrelationId] = "stale-check",
+            [MessageHeaders.SourceService] = "stale-service"
+        }, Guid.NewGuid());
+
+        var nextPipe = new Mock<IPipe<ConsumeContext<TestMessage>>>();
+        nextPipe.Setup(p => p.Send(It.IsAny<ConsumeContext<TestMessage>>()))
+            .ThrowsAsync(new InvalidOperationException("pipeline failure"));
+
+        var act = () => filter.Send(consumeContext, nextPipe.Object);
+        await act.Should().ThrowAsync<InvalidOperationException>();
+
+        // Verify no stale context remains
+        _accessor.Current.Should().BeNull();
+
+        // Verify a fresh send works correctly after failure
+        var consumeContext2 = CreateConsumeContext(new Dictionary<string, object>
+        {
+            [MessageHeaders.CorrelationId] = "fresh"
+        }, Guid.NewGuid());
+
+        ConsumerContextModel? freshContext = null;
+        var nextPipe2 = new Mock<IPipe<ConsumeContext<TestMessage>>>();
+        nextPipe2.Setup(p => p.Send(It.IsAny<ConsumeContext<TestMessage>>()))
+            .Callback<ConsumeContext<TestMessage>>(_ => { freshContext = _accessor.Current; });
+
+        await filter.Send(consumeContext2, nextPipe2.Object);
+
+        freshContext.Should().NotBeNull();
+        freshContext!.CorrelationId.Should().Be("fresh");
+    }
+
     private static ConsumeContext<TestMessage> CreateConsumeContext(
-        IDictionary<string, object> headers, Guid messageId)
+        IDictionary<string, object> headers, Guid? messageId)
     {
         var mock = new Mock<ConsumeContext<TestMessage>>();
         mock.Setup(c => c.MessageId).Returns(messageId);

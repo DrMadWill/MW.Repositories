@@ -4,6 +4,7 @@ using MW.Messaging.MassTransit.Observers;
 using MW.Messaging.Observability;
 using MW.Messaging.Constants;
 using MassTransit;
+using MessageHeaders = MW.Messaging.Headers.MessageHeaders;
 
 namespace MW.Messaging.MassTransit.Tests.Observers;
 
@@ -82,14 +83,110 @@ public class PublishObserverAdapterTests
         capturedCtx.EventName.Should().Be(nameof(TestMessage));
     }
 
-    private static PublishContext<T> CreatePublishContext<T>(Guid? messageId = null) where T : class, new()
+    [Fact]
+    public async Task PrePublish_Should_ExtractHeaderValues()
+    {
+        MessageLogContext? capturedCtx = null;
+        var observer = new Mock<MW.Messaging.MassTransit.IPublishObserver>();
+        observer.Setup(o => o.OnPrePublish(It.IsAny<MessageLogContext>()))
+            .Callback<MessageLogContext>(ctx => capturedCtx = ctx);
+
+        var adapter = new MassTransitPublishObserverAdapter(observer.Object);
+        var headers = new Dictionary<string, object>
+        {
+            [MessageHeaders.CorrelationId] = "pub-corr-123",
+            [MessageHeaders.CausationId] = "pub-cause-456",
+            [MessageHeaders.TraceId] = "pub-trace-789",
+            [MessageHeaders.SourceService] = "pub-service",
+            [MessageHeaders.EventName] = "OrderCreated",
+            [MessageHeaders.EventVersion] = "1.0"
+        };
+
+        var publishContext = CreatePublishContext<TestMessage>(Guid.NewGuid(), headers);
+
+        await adapter.PrePublish(publishContext);
+
+        capturedCtx.Should().NotBeNull();
+        capturedCtx!.CorrelationId.Should().Be("pub-corr-123");
+        capturedCtx.CausationId.Should().Be("pub-cause-456");
+        capturedCtx.TraceId.Should().Be("pub-trace-789");
+        capturedCtx.SourceService.Should().Be("pub-service");
+        capturedCtx.EventName.Should().Be("OrderCreated");
+        capturedCtx.EventVersion.Should().Be("1.0");
+    }
+
+    [Fact]
+    public async Task PrePublish_Should_PopulateTimestamp()
+    {
+        MessageLogContext? capturedCtx = null;
+        var observer = new Mock<MW.Messaging.MassTransit.IPublishObserver>();
+        observer.Setup(o => o.OnPrePublish(It.IsAny<MessageLogContext>()))
+            .Callback<MessageLogContext>(ctx => capturedCtx = ctx);
+
+        var adapter = new MassTransitPublishObserverAdapter(observer.Object);
+        var before = DateTimeOffset.UtcNow;
+
+        await adapter.PrePublish(CreatePublishContext<TestMessage>());
+
+        var after = DateTimeOffset.UtcNow;
+        capturedCtx!.Timestamp.Should().BeOnOrAfter(before);
+        capturedCtx.Timestamp.Should().BeOnOrBefore(after);
+    }
+
+    [Fact]
+    public async Task PrePublish_Should_PopulateEndpoint()
+    {
+        MessageLogContext? capturedCtx = null;
+        var observer = new Mock<MW.Messaging.MassTransit.IPublishObserver>();
+        observer.Setup(o => o.OnPrePublish(It.IsAny<MessageLogContext>()))
+            .Callback<MessageLogContext>(ctx => capturedCtx = ctx);
+
+        var adapter = new MassTransitPublishObserverAdapter(observer.Object);
+        var publishContext = CreatePublishContext<TestMessage>(destinationAddress: new Uri("rabbitmq://localhost/test-queue"));
+
+        await adapter.PrePublish(publishContext);
+
+        capturedCtx!.Endpoint.Should().Be("rabbitmq://localhost/test-queue");
+    }
+
+    [Fact]
+    public async Task PrePublish_Should_FallbackEventNameToTypeName_WhenNoHeader()
+    {
+        MessageLogContext? capturedCtx = null;
+        var observer = new Mock<MW.Messaging.MassTransit.IPublishObserver>();
+        observer.Setup(o => o.OnPrePublish(It.IsAny<MessageLogContext>()))
+            .Callback<MessageLogContext>(ctx => capturedCtx = ctx);
+
+        var adapter = new MassTransitPublishObserverAdapter(observer.Object);
+
+        // No EventName header - should fallback to type name
+        await adapter.PrePublish(CreatePublishContext<TestMessage>());
+
+        capturedCtx!.EventName.Should().Be(nameof(TestMessage));
+    }
+
+    private static PublishContext<T> CreatePublishContext<T>(
+        Guid? messageId = null,
+        Dictionary<string, object>? headerValues = null,
+        Uri? destinationAddress = null) where T : class, new()
     {
         var mock = new Mock<PublishContext<T>>();
         mock.Setup(c => c.MessageId).Returns(messageId ?? Guid.NewGuid());
         mock.Setup(c => c.Message).Returns(new T());
+        mock.Setup(c => c.DestinationAddress).Returns(destinationAddress);
 
         var headersMock = new Mock<SendHeaders>();
-        headersMock.Setup(h => h.TryGetHeader(It.IsAny<string>(), out It.Ref<object?>.IsAny)).Returns(false);
+        headersMock.Setup(h => h.TryGetHeader(It.IsAny<string>(), out It.Ref<object?>.IsAny))
+            .Returns((string key, out object? value) =>
+            {
+                if (headerValues != null && headerValues.TryGetValue(key, out var val))
+                {
+                    value = val;
+                    return true;
+                }
+                value = null;
+                return false;
+            });
         mock.Setup(c => c.Headers).Returns(headersMock.Object);
 
         return mock.Object;
@@ -171,18 +268,98 @@ public class ConsumeObserverAdapterTests
         capturedCtx!.Endpoint.Should().NotBeNull();
     }
 
-    private static ConsumeContext<T> CreateConsumeContext<T>() where T : class, new()
+    [Fact]
+    public async Task PreConsume_Should_ExtractConsumerName()
+    {
+        MessageLogContext? capturedCtx = null;
+        var observer = new Mock<MW.Messaging.MassTransit.IConsumeObserver>();
+        observer.Setup(o => o.OnPreConsume(It.IsAny<MessageLogContext>()))
+            .Callback<MessageLogContext>(ctx => capturedCtx = ctx);
+
+        var adapter = new MassTransitConsumeObserverAdapter(observer.Object);
+        var consumeContext = CreateConsumeContext<TestMessage>(
+            inputAddress: new Uri("rabbitmq://localhost/order-events"));
+
+        await adapter.PreConsume(consumeContext);
+
+        capturedCtx.Should().NotBeNull();
+        capturedCtx!.Consumer.Should().Be("order-events");
+    }
+
+    [Fact]
+    public async Task PreConsume_Should_ExtractHeaderValues()
+    {
+        MessageLogContext? capturedCtx = null;
+        var observer = new Mock<MW.Messaging.MassTransit.IConsumeObserver>();
+        observer.Setup(o => o.OnPreConsume(It.IsAny<MessageLogContext>()))
+            .Callback<MessageLogContext>(ctx => capturedCtx = ctx);
+
+        var adapter = new MassTransitConsumeObserverAdapter(observer.Object);
+        var headers = new Dictionary<string, object>
+        {
+            [MessageHeaders.CorrelationId] = "consume-corr",
+            [MessageHeaders.CausationId] = "consume-cause",
+            [MessageHeaders.TraceId] = "consume-trace",
+            [MessageHeaders.SourceService] = "consume-service",
+            [MessageHeaders.EventName] = "OrderPlaced",
+            [MessageHeaders.EventVersion] = "2.0"
+        };
+
+        var consumeContext = CreateConsumeContext<TestMessage>(headerValues: headers);
+
+        await adapter.PreConsume(consumeContext);
+
+        capturedCtx.Should().NotBeNull();
+        capturedCtx!.CorrelationId.Should().Be("consume-corr");
+        capturedCtx.CausationId.Should().Be("consume-cause");
+        capturedCtx.TraceId.Should().Be("consume-trace");
+        capturedCtx.SourceService.Should().Be("consume-service");
+        capturedCtx.EventName.Should().Be("OrderPlaced");
+        capturedCtx.EventVersion.Should().Be("2.0");
+    }
+
+    [Fact]
+    public async Task PreConsume_Should_PopulateTimestamp()
+    {
+        MessageLogContext? capturedCtx = null;
+        var observer = new Mock<MW.Messaging.MassTransit.IConsumeObserver>();
+        observer.Setup(o => o.OnPreConsume(It.IsAny<MessageLogContext>()))
+            .Callback<MessageLogContext>(ctx => capturedCtx = ctx);
+
+        var adapter = new MassTransitConsumeObserverAdapter(observer.Object);
+        var before = DateTimeOffset.UtcNow;
+
+        await adapter.PreConsume(CreateConsumeContext<TestMessage>());
+
+        var after = DateTimeOffset.UtcNow;
+        capturedCtx!.Timestamp.Should().BeOnOrAfter(before);
+        capturedCtx.Timestamp.Should().BeOnOrBefore(after);
+    }
+
+    private static ConsumeContext<T> CreateConsumeContext<T>(
+        Uri? inputAddress = null,
+        Dictionary<string, object>? headerValues = null) where T : class, new()
     {
         var mock = new Mock<ConsumeContext<T>>();
         mock.Setup(c => c.MessageId).Returns(Guid.NewGuid());
         mock.Setup(c => c.Message).Returns(new T());
 
         var headersMock = new Mock<global::MassTransit.Headers>();
-        headersMock.Setup(h => h.TryGetHeader(It.IsAny<string>(), out It.Ref<object?>.IsAny)).Returns(false);
+        headersMock.Setup(h => h.TryGetHeader(It.IsAny<string>(), out It.Ref<object?>.IsAny))
+            .Returns((string key, out object? value) =>
+            {
+                if (headerValues != null && headerValues.TryGetValue(key, out var val))
+                {
+                    value = val;
+                    return true;
+                }
+                value = null;
+                return false;
+            });
         mock.Setup(c => c.Headers).Returns(headersMock.Object);
 
         var receiveContextMock = new Mock<ReceiveContext>();
-        receiveContextMock.Setup(r => r.InputAddress).Returns(new Uri("rabbitmq://localhost/test-endpoint"));
+        receiveContextMock.Setup(r => r.InputAddress).Returns(inputAddress ?? new Uri("rabbitmq://localhost/test-endpoint"));
         mock.Setup(c => c.ReceiveContext).Returns(receiveContextMock.Object);
 
         return mock.Object;
@@ -247,14 +424,88 @@ public class SendObserverAdapterTests
         await adapter.PreSend(sendContext);
     }
 
-    private static SendContext<T> CreateSendContext<T>() where T : class, new()
+    [Fact]
+    public async Task PreSend_Should_ExtractHeaderValues()
+    {
+        MessageLogContext? capturedCtx = null;
+        var observer = new Mock<MW.Messaging.MassTransit.ISendObserver>();
+        observer.Setup(o => o.OnPreSend(It.IsAny<MessageLogContext>()))
+            .Callback<MessageLogContext>(ctx => capturedCtx = ctx);
+
+        var adapter = new MassTransitSendObserverAdapter(observer.Object);
+        var headers = new Dictionary<string, object>
+        {
+            [MessageHeaders.CorrelationId] = "send-corr",
+            [MessageHeaders.SourceService] = "send-service",
+            [MessageHeaders.EventName] = "SendEvent"
+        };
+
+        var sendContext = CreateSendContext<TestMessage>(headerValues: headers);
+
+        await adapter.PreSend(sendContext);
+
+        capturedCtx.Should().NotBeNull();
+        capturedCtx!.CorrelationId.Should().Be("send-corr");
+        capturedCtx.SourceService.Should().Be("send-service");
+        capturedCtx.EventName.Should().Be("SendEvent");
+    }
+
+    [Fact]
+    public async Task PreSend_Should_PopulateEndpoint()
+    {
+        MessageLogContext? capturedCtx = null;
+        var observer = new Mock<MW.Messaging.MassTransit.ISendObserver>();
+        observer.Setup(o => o.OnPreSend(It.IsAny<MessageLogContext>()))
+            .Callback<MessageLogContext>(ctx => capturedCtx = ctx);
+
+        var adapter = new MassTransitSendObserverAdapter(observer.Object);
+        var sendContext = CreateSendContext<TestMessage>(
+            destinationAddress: new Uri("rabbitmq://localhost/send-queue"));
+
+        await adapter.PreSend(sendContext);
+
+        capturedCtx!.Endpoint.Should().Be("rabbitmq://localhost/send-queue");
+    }
+
+    [Fact]
+    public async Task PreSend_Should_PopulateTimestamp()
+    {
+        MessageLogContext? capturedCtx = null;
+        var observer = new Mock<MW.Messaging.MassTransit.ISendObserver>();
+        observer.Setup(o => o.OnPreSend(It.IsAny<MessageLogContext>()))
+            .Callback<MessageLogContext>(ctx => capturedCtx = ctx);
+
+        var adapter = new MassTransitSendObserverAdapter(observer.Object);
+        var before = DateTimeOffset.UtcNow;
+
+        await adapter.PreSend(CreateSendContext<TestMessage>());
+
+        var after = DateTimeOffset.UtcNow;
+        capturedCtx!.Timestamp.Should().BeOnOrAfter(before);
+        capturedCtx.Timestamp.Should().BeOnOrBefore(after);
+    }
+
+    private static SendContext<T> CreateSendContext<T>(
+        Dictionary<string, object>? headerValues = null,
+        Uri? destinationAddress = null) where T : class, new()
     {
         var mock = new Mock<SendContext<T>>();
         mock.Setup(c => c.MessageId).Returns(Guid.NewGuid());
         mock.Setup(c => c.Message).Returns(new T());
+        mock.Setup(c => c.DestinationAddress).Returns(destinationAddress);
 
         var headersMock = new Mock<SendHeaders>();
-        headersMock.Setup(h => h.TryGetHeader(It.IsAny<string>(), out It.Ref<object?>.IsAny)).Returns(false);
+        headersMock.Setup(h => h.TryGetHeader(It.IsAny<string>(), out It.Ref<object?>.IsAny))
+            .Returns((string key, out object? value) =>
+            {
+                if (headerValues != null && headerValues.TryGetValue(key, out var val))
+                {
+                    value = val;
+                    return true;
+                }
+                value = null;
+                return false;
+            });
         mock.Setup(c => c.Headers).Returns(headersMock.Object);
 
         return mock.Object;
