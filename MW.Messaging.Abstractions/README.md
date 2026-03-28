@@ -52,7 +52,7 @@ dotnet add package MW.Messaging.Abstractions
 - **Manual outbox/inbox implementasiyası** — MassTransit Transactional Outbox istifadə olunur
 - **Biznes-spesifik repair məntiqi** — Servis səviyyəsində qalmalıdır
 - **Servis-spesifik sinxronizasiya məntiqi** — Hər servisin öz daxili işidir
-- **Konkret MassTransit implementasiyası** — Gələcəkdə `MW.Messaging.MassTransit`-da olacaq
+- **Konkret MassTransit implementasiyası** — [`MW.Messaging.MassTransit`](../MW.Messaging.MassTransit/)-da yerləşir
 
 ## 🏗️ Paket Strukturu
 
@@ -103,7 +103,7 @@ MW.Messaging.Abstractions/
 │      MW.Messaging.Abstractions           │
 │  (kontraktlar, interfeyslər, modellər)   │
 └───────────────┬──────────────────────────┘
-                │ implemented by (gələcək)
+                │ implemented by
                 ▼
 ┌──────────────────────────────────────────┐
 │      MW.Messaging.MassTransit            │
@@ -113,7 +113,7 @@ MW.Messaging.Abstractions/
 
 **Asılılıq qaydaları:**
 - Application/servis layihələri `MW.Messaging.Abstractions`-dan asılıdır
-- Messaging infrastruktur implementasiyası gələcəkdə `MW.Messaging.MassTransit`-da olacaq
+- Messaging infrastruktur implementasiyası [`MW.Messaging.MassTransit`](../MW.Messaging.MassTransit/)-da yerləşir
 - HTTP user identity `MW.Identity.Token`-da qalır — mesaj konteksti ilə qarışmamalıdır
 - Persistence concern-ləri `MW.Persistence.*`-da qalır — messaging-dən asılı olmamalıdır
 
@@ -323,7 +323,7 @@ Bu layihə aşağıdakı prinsiplərə əsaslanır:
 - MassTransit interfeys kontraktları (observer, mapper)
 - Müşahidəçilik modelləri və sabitlər
 
-**Bu paket ehtiva etmir (gələcəkdə MW.Messaging.MassTransit-da olacaq):**
+**Bu paket ehtiva etmir ([MW.Messaging.MassTransit](../MW.Messaging.MassTransit/)-da yerləşir):**
 
 - MassTransit registration / DI konfiqurasiyası
 - RabbitMQ / broker bağlantısı və setup
