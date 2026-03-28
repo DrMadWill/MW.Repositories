@@ -24,10 +24,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="8.0.4" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\MW.Messaging.Abstractions\MW.Messaging.Abstractions.csproj" />
+    <PackageReference Include="MW.Messaging.Abstractions" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>

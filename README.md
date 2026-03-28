@@ -19,28 +19,28 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                   MW.Application.Abstractions                │
-│         CQRS · Errors · Authorization · Caching              │
-│         Validation · Pagination · Context · Time             │
+│                   MW.Application.Abstractions               │
+│         CQRS · Errors · Authorization · Caching             │
+│         Validation · Pagination · Context · Time            │
 ├─────────────────────────────────────────────────────────────┤
-│                          MW.Core                             │
-│    Entities · AggregateRoots · ValueObjects · Events         │
-│    Rules · Auditing · MultiTenancy · Exceptions              │
+│                          MW.Core                            │
+│    Entities · AggregateRoots · ValueObjects · Events        │
+│    Rules · Auditing · MultiTenancy · Exceptions             │
 ├──────────────────────────┬──────────────────────────────────┤
-│  MW.Persistence.          │  MW.Persistence.                 │
-│  Abstractions             │  EntityFrameworkCore             │
-│  (kontraktlar)            │  (EF Core implementasiyalar)     │
+│  MW.Persistence.         │  MW.Persistence.                 │
+│  Abstractions            │  EntityFrameworkCore             │
+│  (kontraktlar)           │  (EF Core implementasiyalar)     │
 ├──────────────────────────┴──────────────────────────────────┤
-│               MW.Persistence.DependencyInjection             │
-│          (DI composition — DbContext, repos, UoW)            │
+│               MW.Persistence.DependencyInjection            │
+│          (DI composition — DbContext, repos, UoW)           │
 ├──────────────────────────┬──────────────────────────────────┤
-│  MW.Messaging.            │  MW.Messaging.                   │
-│  Abstractions             │  MassTransit                     │
-│  (kontraktlar)            │  (MassTransit implementasiya)    │
+│  MW.Messaging.           │  MW.Messaging.                   │
+│  Abstractions            │  MassTransit                     │
+│  (kontraktlar)           │  (MassTransit implementasiya)    │
 ├──────────────────────────┴──────────────────────────────────┤
-│                      MW.Identity.Token                        │
-│   ICurrentUser · ClaimsPrincipal Extensions · ClaimConstants  │
-│   SystemRole · DependencyInjection · JWT Claims               │
+│                      MW.Identity.Token                      │
+│   ICurrentUser · ClaimsPrincipal Extensions · ClaimConstants│
+│   SystemRole · DependencyInjection · JWT Claims             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
