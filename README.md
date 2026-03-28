@@ -1,6 +1,6 @@
-# MW.Repositories
+# MW.Extensions
 
-**MW.Repositories** — Clean Architecture və Domain-Driven Design (DDD) prinsiplərinə əsaslanan .NET 8.0 mono-repo kitabxana toplusudur. Bu repo domain modellər, application-layer abstraksiyalar, persistence kontraktları, EF Core implementasiyaları və mikroservis building blocks-ları əhatə edir.
+**MW.Extensions** — Clean Architecture və Domain-Driven Design (DDD) prinsiplərinə əsaslanan .NET 8.0 mono-repo kitabxana toplusudur. Bu repo domain modellər, application-layer abstraksiyalar, persistence kontraktları, EF Core implementasiyaları, DI composition, mikroservis mesajlaşma infrastrukturu və JWT identity idarəetməsini əhatə edir.
 
 ## 📦 Layihələr
 
@@ -10,8 +10,10 @@
 | [MW.Application.Abstractions](MW.Application.Abstractions/) | Application-layer kontraktları — CQRS, Errors, Authorization, Caching, Validation, Pagination, Context, Time | MediatR, CSharpFunctionalExtensions, Dr.Pagination |
 | [MW.Persistence.Abstractions](MW.Persistence.Abstractions/) | Persistence kontraktları — Repository, UnitOfWork, Specification, Transaction, Query interfeyslər | MW.Core |
 | [MW.Persistence.EntityFrameworkCore](MW.Persistence.EntityFrameworkCore/) | EF Core implementasiyaları — bütün persistence abstraksiyalarının konkret reallaşdırılması | MW.Core, MW.Persistence.Abstractions, EF Core 8.0.4 |
-| [MW.Messaging.Abstractions](MW.Messaging.Abstractions/) | Mikroservis infrastrukturu — Messaging, Correlation, Observability, MassTransit abstraksiyaları, Audit | — |
-| MW.Repositories | Wrapper/meta layihə | Bütün layihələr |
+| [MW.Persistence.DependencyInjection](MW.Persistence.DependencyInjection/) | Persistence DI composition — DbContext, repository, UnitOfWork, transaction qeydiyyatı | MW.Persistence.Abstractions, MW.Persistence.EntityFrameworkCore |
+| [MW.Messaging.Abstractions](MW.Messaging.Abstractions/) | Mesajlaşma abstraksiyaları — Contracts, Correlation, Observability, MassTransit interfeyslər, Audit | — |
+| [MW.Messaging.MassTransit](MW.Messaging.MassTransit/) | MassTransit implementasiyası — RabbitMQ transport, filters, observers, outbox, health checks | MW.Messaging.Abstractions, MassTransit 8.2.5 |
+| [MW.Identity.Token](MW.Identity.Token/) | JWT identity idarəetməsi — ICurrentUser, ClaimsPrincipal extensions, ClaimConstants, SystemRole | Microsoft.AspNetCore.App, Newtonsoft.Json |
 
 ## 🏛️ Arxitektura
 
@@ -29,10 +31,13 @@
 │  Abstractions             │  EntityFrameworkCore             │
 │  (kontraktlar)            │  (EF Core implementasiyalar)     │
 ├──────────────────────────┴──────────────────────────────────┤
-│                  MW.Messaging.Abstractions                    │
-│   Messaging · Correlation · Observability · MassTransit      │
-│   Audit · Headers · Contracts · Constants                    │
-├─────────────────────────────────────────────────────────────┤
+│               MW.Persistence.DependencyInjection             │
+│          (DI composition — DbContext, repos, UoW)            │
+├──────────────────────────┬──────────────────────────────────┤
+│  MW.Messaging.            │  MW.Messaging.                   │
+│  Abstractions             │  MassTransit                     │
+│  (kontraktlar)            │  (MassTransit implementasiya)    │
+├──────────────────────────┴──────────────────────────────────┤
 │                      MW.Identity.Token                        │
 │   ICurrentUser · ClaimsPrincipal Extensions · ClaimConstants  │
 │   SystemRole · DependencyInjection · JWT Claims               │
@@ -67,7 +72,10 @@ Install-Package MW.Core
 Install-Package MW.Application.Abstractions
 Install-Package MW.Persistence.Abstractions
 Install-Package MW.Persistence.EntityFrameworkCore
+Install-Package MW.Persistence.DependencyInjection
 Install-Package MW.Messaging.Abstractions
+Install-Package MW.Messaging.MassTransit
+Install-Package MW.Identity.Token
 ```
 
 ### .NET CLI
@@ -77,7 +85,10 @@ dotnet add package MW.Core
 dotnet add package MW.Application.Abstractions
 dotnet add package MW.Persistence.Abstractions
 dotnet add package MW.Persistence.EntityFrameworkCore
+dotnet add package MW.Persistence.DependencyInjection
 dotnet add package MW.Messaging.Abstractions
+dotnet add package MW.Messaging.MassTransit
+dotnet add package MW.Identity.Token
 ```
 
 ## 🚀 İstifadə Nümunələri
@@ -219,6 +230,21 @@ public class OrderCreatedEvent : IntegrationEvent
 }
 ```
 
+### MassTransit Mesajlaşma Qeydiyyatı
+
+```csharp
+using MW.Messaging.MassTransit.Extensions;
+
+builder.Services.AddMassTransitMessaging(options =>
+{
+    options.BindOptions(builder.Configuration);
+    options.AddConsumersFromAssembly(typeof(Program).Assembly);
+
+    // Opsional: Transactional outbox
+    options.UseEntityFrameworkOutbox<AppDbContext>();
+});
+```
+
 ### JWT İstifadəçi İdentifikasiyası (Identity Token)
 
 ```csharp
@@ -261,7 +287,7 @@ public class ProductsController : ControllerBase
 ## 🏗️ Layihə Strukturu
 
 ```
-MW.Repositories/
+MW.Extensions/
 ├── MW.Core/                              # Domain Layer
 │   ├── Entities/                         # Entity base class və interfeyslər
 │   ├── AggregateRoots/                   # Aggregate Root abstraksiyaları
@@ -301,19 +327,43 @@ MW.Repositories/
 │   ├── Evaluators/                       # SpecificationEvaluator
 │   ├── Transactions/                     # EfTransactionManager, EfTransactionScope
 │   ├── Querying/                         # QueryOptions, SoftDeleteFilter
-│   ├── Extensions/                       # (ayrılmış — gələcək genişlənmə)
-│   └── Internal/                         # (ayrılmış — daxili köməkçilər)
+│   ├── Extensions/                       # Extension metodları
+│   └── Internal/                         # Daxili köməkçilər
 │
-├── MW.Messaging.Abstractions/             # Microservice Messaging Infrastructure
+├── MW.Persistence.DependencyInjection/   # Persistence DI Composition
+│   ├── Extensions/                       # AddEfCorePersistence extension metodu
+│   ├── Options/                          # PersistenceOptions, DatabaseProvider
+│   ├── Registrations/                    # Servis qeydiyyat məntiqi
+│   ├── Providers/                        # Database provider konfiqurasiyası
+│   └── Internal/                         # Daxili implementasiya detalları
+│
+├── MW.Messaging.Abstractions/            # Messaging Contracts
 │   ├── Contracts/                        # IIntegrationEvent, IntegrationEvent
 │   ├── Messaging/                        # EventMetadata, ServiceIdentity
 │   ├── Correlation/                      # ICorrelationContext
 │   ├── Observability/                    # MessageLogContext, ObservabilityFields
 │   ├── MassTransit/                      # Observer interfeyslər, IMessageHeaderMapper
 │   ├── Headers/                          # MessageHeaders sabitləri
+│   ├── Context/                          # IMessageContextAccessor, IMessageExecutionContext
+│   ├── Identity/                         # IServiceIdentityProvider
+│   ├── Publishing/                       # IIntegrationEventPublisher
+│   ├── Validation/                       # IIntegrationEventValidator, IEventNamingConvention
 │   ├── Audit/                            # EventAuditRecord
 │   ├── Constants/                        # EventDirections, EventStatuses
 │   └── Docs/                             # Konvensiya sənədləri
+│
+├── MW.Messaging.MassTransit/             # MassTransit Infrastructure
+│   ├── Context/                          # ScopedMessageContextAccessor, DefaultPublishContextProvider
+│   ├── Extensions/                       # AddMassTransitMessaging extension metodu
+│   ├── Filters/                          # HeaderEnrichmentPublishFilter, MessageContextConsumeFilter
+│   ├── Health/                           # MassTransitBusHealthCheck
+│   ├── Identity/                         # ConfigurationServiceIdentityProvider
+│   ├── Naming/                           # ServiceEndpointNameFormatter
+│   ├── Observers/                        # Publish, Consume, Send, Bus lifecycle observer-lər
+│   ├── Options/                          # MassTransitOptions, RabbitMqOptions, RetryOptions
+│   ├── Publishing/                       # MassTransitIntegrationEventPublisher
+│   ├── Tracing/                          # MessagingActivitySource
+│   └── Docs/                             # İnteqrasiya və arxitektura sənədləri
 │
 ├── MW.Identity.Token/                    # JWT Identity Management
 │   ├── Constants/                        # ClaimConstants, SystemRole sabitləri
@@ -322,7 +372,13 @@ MW.Repositories/
 │   ├── Extensions/                       # ClaimsPrincipal extension metodları
 │   └── Services/                         # CurrentUser implementasiyası
 │
-└── MW.Repositories/                      # Wrapper/Meta Project
+└── tests/                                # Test Layihələri
+    ├── MW.Persistence.Tests.Architecture/ # Arxitektura testləri
+    ├── MW.Persistence.Tests.Unit/         # Persistence unit testləri
+    ├── MW.Persistence.Tests.Integration/  # Persistence inteqrasiya testləri
+    ├── MW.Persistence.Tests.Shared/       # Paylaşılan test infrastrukturu
+    ├── MW.Identity.Token.Tests/           # Identity token testləri
+    └── MW.Messaging.MassTransit.Tests/    # MassTransit mesajlaşma testləri
 ```
 
 ## 📋 Asılılıqlar
@@ -330,16 +386,23 @@ MW.Repositories/
 | Paket | Versiya | İstifadə Edən |
 |-------|---------|---------------|
 | Microsoft.EntityFrameworkCore | 8.0.4 | MW.Persistence.EntityFrameworkCore, MW.Application.Abstractions |
+| Npgsql.EntityFrameworkCore.PostgreSQL | 8.0.4 | MW.Persistence.DependencyInjection |
+| Microsoft.EntityFrameworkCore.SqlServer | 8.0.4 | MW.Persistence.DependencyInjection |
 | MediatR | 12.1.1 | MW.Application.Abstractions |
+| MediatR.Contracts | 2.0.1 | MW.Core |
 | CSharpFunctionalExtensions | 3.7.0 | MW.Application.Abstractions |
 | Dr.Pagination | 1.0.1 | MW.Application.Abstractions |
+| MassTransit.RabbitMQ | 8.2.5 | MW.Messaging.MassTransit |
+| MassTransit.EntityFrameworkCore | 8.2.5 | MW.Messaging.MassTransit |
+| AspNetCore.HealthChecks.Rabbitmq | 8.0.0 | MW.Messaging.MassTransit |
 | Newtonsoft.Json | 13.0.3 | MW.Identity.Token |
 | Microsoft.AspNetCore.App | framework | MW.Identity.Token |
 
-## 🔧 Build
+## 🔧 Build və Test
 
 ```bash
-dotnet build MW.Repositories.sln
+dotnet build MW.Extensions.sln
+dotnet test MW.Extensions.sln
 ```
 
 ## 🔧 Tələblər
