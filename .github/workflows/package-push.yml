@@ -21,6 +21,7 @@ jobs:
           - MW.Persistence.Abstractions/MW.Persistence.Abstractions.csproj
           - MW.Persistence.DependencyInjection/MW.Persistence.DependencyInjection.csproj
           - MW.Identity.Token/MW.Identity.Token.csproj
+          - MW.Messaging.Abstractions/MW.Messaging.Abstractions.csproj
 
     steps:
       - name: Checkout code
