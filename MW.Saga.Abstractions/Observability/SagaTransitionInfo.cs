@@ -11,22 +11,22 @@ namespace MW.Saga.Observability;
 public class SagaTransitionInfo
 {
     /// <summary>
-    /// Gets or sets the state the saga transitioned from.
+    /// Gets the state the saga transitioned from.
     /// </summary>
-    public string FromState { get; set; } = string.Empty;
+    public string FromState { get; init; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the state the saga transitioned to.
+    /// Gets the state the saga transitioned to.
     /// </summary>
-    public string ToState { get; set; } = string.Empty;
+    public string ToState { get; init; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the name of the event or message that triggered the transition.
+    /// Gets the name of the event or message that triggered the transition.
     /// </summary>
-    public string? TriggeredBy { get; set; }
+    public string? TriggeredBy { get; init; }
 
     /// <summary>
-    /// Gets or sets the UTC timestamp when the transition occurred.
+    /// Gets the UTC timestamp when the transition occurred.
     /// </summary>
-    public DateTime OccurredAt { get; set; }
+    public DateTime OccurredAt { get; init; }
 }

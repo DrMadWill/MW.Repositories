@@ -45,6 +45,8 @@ public abstract class SagaStateBase : ISagaState
 
     /// <summary>
     /// Gets or sets the concurrency/version token for optimistic concurrency control.
+    /// This field should be incremented on each state update and used for optimistic locking
+    /// during persistence operations to detect conflicting updates.
     /// </summary>
     public int Version { get; set; }
 
