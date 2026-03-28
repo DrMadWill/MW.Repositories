@@ -20,6 +20,8 @@ jobs:
           - tests/MW.Persistence.Tests.Architecture
           - tests/MW.Persistence.Tests.Unit
           - tests/MW.Persistence.Tests.Integration
+          - tests/MW.Identity.Token.Tests
+          - tests/MW.Messaging.MassTransit.Tests
 
     steps:
       - name: Checkout code
