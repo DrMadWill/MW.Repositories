@@ -35,7 +35,7 @@ public class SagaStateBaseMapTests
     private static TestSagaDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<TestSagaDbContext>()
-            .UseInMemoryDatabase("test-saga-db-" + Guid.NewGuid())
+            .UseInMemoryDatabase($"test-saga-db-{Guid.NewGuid()}")
             .Options;
 
         return new TestSagaDbContext(options);
@@ -80,7 +80,7 @@ public class SagaStateBaseMapTests
     {
         var map = new TestSagaStateMap();
         var options = new DbContextOptionsBuilder<TestSagaDbContext>()
-            .UseInMemoryDatabase("test-saga-db-" + Guid.NewGuid())
+            .UseInMemoryDatabase($"test-saga-db-{Guid.NewGuid()}")
             .Options;
 
         using var dbContext = new TestSagaDbContext(options);

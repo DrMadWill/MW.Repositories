@@ -18,6 +18,7 @@ public class SagaEfCorePersistenceHelperTests
         var act = () => SagaEfCorePersistenceHelper
             .UseEntityFrameworkCoreSagaRepository<TestPersistenceSaga, DbContext>(null!);
 
-        act.Should().Throw<ArgumentNullException>();
+        act.Should().Throw<ArgumentNullException>()
+            .WithParameterName("sagaRegistration");
     }
 }
