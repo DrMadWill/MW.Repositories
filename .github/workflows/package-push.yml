@@ -24,6 +24,7 @@ jobs:
           - MW.Messaging.Abstractions/MW.Messaging.Abstractions.csproj
           - MW.Messaging.MassTransit/MW.Messaging.MassTransit.csproj
           - MW.Saga.Abstractions/MW.Saga.Abstractions.csproj
+          - MW.Saga.MassTransit/MW.Saga.MassTransit.csproj
 
     steps:
       - name: Checkout code

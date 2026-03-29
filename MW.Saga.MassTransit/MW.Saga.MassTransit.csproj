@@ -23,11 +23,8 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\MW.Saga.Abstractions\MW.Saga.Abstractions.csproj" />
-    <ProjectReference Include="..\MW.Messaging.Abstractions\MW.Messaging.Abstractions.csproj" />
+    <PackageReference Include="MW.Messaging.Abstractions" Version="1.0.0" />
+    <PackageReference Include="MW.Saga.Abstractions" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
