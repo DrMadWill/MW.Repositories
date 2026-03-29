@@ -22,6 +22,7 @@ jobs:
           - tests/MW.Persistence.Tests.Integration
           - tests/MW.Identity.Token.Tests
           - tests/MW.Messaging.MassTransit.Tests
+          - test/MW.Saga.MassTransit.Tests
 
     steps:
       - name: Checkout code
