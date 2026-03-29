@@ -22,7 +22,7 @@ This console application is a **reference/demo host** — not a production micro
 ## Required Infrastructure
 
 - **RabbitMQ** — message transport
-- **PostgreSQL** — database for business data, saga state, and outbox
+- **SQL Server** — database for business data, saga state, and outbox
 
 ## Quick Start
 
@@ -33,7 +33,7 @@ cd samples/MW.OrderRegistration.ConsoleDemo
 docker-compose up -d
 ```
 
-This starts RabbitMQ (ports 5672/15672) and PostgreSQL (port 5432).
+This starts RabbitMQ (ports 5672/15672) and SQL Server (port 1433).
 
 ### 2. Run the Demo
 
@@ -81,7 +81,7 @@ Settings are in `appsettings.json`:
 
 | Setting                         | Description                                      | Default                                    |
 |---------------------------------|--------------------------------------------------|--------------------------------------------|
-| `ConnectionStrings:DemoDb`      | PostgreSQL connection string                     | localhost:5432/mw_order_demo               |
+| `ConnectionStrings:DemoDb`      | SQL Server connection string                     | localhost,1433/mw_order_demo               |
 | `Messaging:RabbitMq:Host`       | RabbitMQ host                                    | localhost                                  |
 | `Messaging:ServiceName`         | Service name for endpoint naming                 | order-registration-demo                    |
 | `Demo:Scenario`                 | Active scenario                                  | success                                    |
