@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>MW.OrderRegistration.ConsoleDemo</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\MW.Messaging.Abstractions\MW.Messaging.Abstractions.csproj" />
+    <ProjectReference Include="..\..\MW.Messaging.MassTransit\MW.Messaging.MassTransit.csproj" />
+    <ProjectReference Include="..\..\MW.Saga.Abstractions\MW.Saga.Abstractions.csproj" />
+    <ProjectReference Include="..\..\MW.Saga.MassTransit\MW.Saga.MassTransit.csproj" />
+    <ProjectReference Include="..\..\MW.Persistence.Abstractions\MW.Persistence.Abstractions.csproj" />
+    <ProjectReference Include="..\..\MW.Persistence.EntityFrameworkCore\MW.Persistence.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\..\MW.Persistence.DependencyInjection\MW.Persistence.DependencyInjection.csproj" />
+    <ProjectReference Include="..\..\MW.Application.Abstractions\MW.Application.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MassTransit" Version="8.2.5" />
+    <PackageReference Include="MassTransit.EntityFrameworkCore" Version="8.2.5" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="8.2.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.4" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

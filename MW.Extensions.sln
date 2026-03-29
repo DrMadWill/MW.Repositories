@@ -46,6 +46,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MW.Saga.MassTransit", "MW.S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MW.Saga.MassTransit.Tests", "tests\MW.Saga.MassTransit.Tests\MW.Saga.MassTransit.Tests.csproj", "{7723C2B7-0C6C-43DB-A9BE-F9F840ECFF06}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{5D20AA90-6969-D8BD-9DCD-8634F4692FDA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MW.OrderRegistration.ConsoleDemo", "samples\MW.OrderRegistration.ConsoleDemo\MW.OrderRegistration.ConsoleDemo.csproj", "{18509D6E-7E57-4EBB-84C1-76AD67995232}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
