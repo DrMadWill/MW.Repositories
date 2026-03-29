@@ -26,4 +26,9 @@ internal class MutableSagaContext : ISagaContext
 
     /// <inheritdoc />
     public string? TraceId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the saga type name for execution context purposes.
+    /// </summary>
+    internal string SagaName { get; set; } = string.Empty;
 }

@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using MassTransit;
+using MW.Messaging.Headers;
+using MessageHeaders = MW.Messaging.Headers.MessageHeaders;
 using MW.Saga.Contracts;
 using MW.Saga.Models;
 
@@ -30,8 +32,9 @@ internal class SagaContextPopulationFilter<TSaga, TMessage> :
             CorrelationId = context.CorrelationId ?? Guid.Empty,
             CurrentState = TryGetCurrentState(context.Saga),
             Status = SagaStatus.Running,
+            SagaName = typeof(TSaga).Name,
             TraceId = Activity.Current?.TraceId.ToString(),
-            SourceService = context.Headers.TryGetHeader("X-Source-Service", out var source) ? source?.ToString() : null
+            SourceService = context.Headers.TryGetHeader(MessageHeaders.SourceService, out var source) ? source?.ToString() : null
         };
 
         _accessor.SetContext(sagaContext);

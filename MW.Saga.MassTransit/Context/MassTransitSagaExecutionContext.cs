@@ -27,7 +27,7 @@ internal class MassTransitSagaExecutionContext : ISagaExecutionContext
     public string? TraceId => _accessor.Current?.TraceId;
 
     /// <inheritdoc />
-    public string SagaName { get; internal set; } = string.Empty;
+    public string SagaName => (_accessor.Current as MutableSagaContext)?.SagaName ?? string.Empty;
 
     /// <inheritdoc />
     public string CurrentState => _accessor.Current?.CurrentState ?? string.Empty;
