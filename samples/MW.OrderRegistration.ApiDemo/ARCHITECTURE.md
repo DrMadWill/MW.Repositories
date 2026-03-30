@@ -57,3 +57,31 @@ If the shared packages change, this API demo should be updated to reflect the ne
 - Focused on infrastructure validation
 - Free of production business logic complexity
 - The primary executable sample for the MW.Extensions infrastructure
+
+## Debug/Test Endpoint Scope
+
+The API host serves two roles:
+
+1. **Business flow sample** — the `/api/orders/*` endpoints demonstrate a realistic order registration saga workflow.
+2. **Package-level debug surface** — the `/api/test/*` endpoints validate shared packages individually.
+
+### Why Debug/Test Endpoints Exist
+
+- **Validate shared packages individually** — test repository, messaging, saga, and persistence abstractions in isolation without triggering full business flows.
+- **Inspect behavior step by step** — observe saga state transitions, messaging header propagation, and persistence/outbox behavior one step at a time.
+- **Support debugging and learning** — developers can explore how each infrastructure package works through simple, predictable HTTP calls.
+
+### What Debug/Test Endpoints Are NOT
+
+- ❌ Production business APIs
+- ❌ Replacements for automated unit/integration tests
+- ❌ Endpoints that should be deployed to non-development environments
+
+### Environment Guard
+
+Debug/test endpoints are restricted by an environment guard:
+- **Enabled** when `ASPNETCORE_ENVIRONMENT=Development` (default for local `dotnet run`)
+- **Enabled** when `TestEndpoints:Enabled=true` in configuration
+- **Disabled** in all other environments — all `/api/test/*` routes return 404
+
+This ensures test endpoints are never accidentally exposed in production-like environments.

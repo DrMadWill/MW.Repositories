@@ -148,3 +148,112 @@ Settings are in `appsettings.json`:
 ```bash
 docker-compose down -v
 ```
+
+## Debug/Test Endpoints
+
+The API host includes a dedicated set of debug/test endpoints for validating each shared infrastructure package individually. These endpoints are **development-only** and are not part of the business API.
+
+### Enabling Test Endpoints
+
+Test endpoints are automatically enabled when:
+- `ASPNETCORE_ENVIRONMENT` is set to `Development` (the default for local `dotnet run`)
+- Or `TestEndpoints:Enabled` is set to `true` in configuration
+
+When disabled, all `/api/test/*` routes return 404.
+
+### Route Groups
+
+| Route Group              | Purpose                                                      |
+|--------------------------|--------------------------------------------------------------|
+| `/api/test/repository/*` | Validate repository abstractions and unit-of-work (CRUD)     |
+| `/api/test/messaging/*`  | Validate messaging publish/consume and header propagation    |
+| `/api/test/saga/*`       | Validate saga start, state inspection, transitions, timeout  |
+| `/api/test/persistence/*`| Validate DB connectivity and outbox behavior                 |
+| `/api/test/integration/*`| Validate combined persistence + messaging flows              |
+| `/api/test/health`       | Quick health check for debug infrastructure                  |
+| `/api/test/summary`      | High-level summary of all registered infrastructure          |
+
+### Repository Endpoints
+
+| Method | Path                            | Description                                          |
+|--------|---------------------------------|------------------------------------------------------|
+| POST   | `/api/test/repository/save`     | Save a demo entity using repository + unit of work   |
+| GET    | `/api/test/repository/{id}`     | Get a demo entity by id                              |
+| PUT    | `/api/test/repository/{id}`     | Update a demo entity                                 |
+| DELETE | `/api/test/repository/{id}`     | Delete a demo entity                                 |
+| GET    | `/api/test/repository/list`     | List all demo entities                               |
+| POST   | `/api/test/repository/rollback` | Intentional failure to observe rollback behavior     |
+
+### Messaging Endpoints
+
+| Method | Path                                           | Description                                     |
+|--------|-------------------------------------------------|-------------------------------------------------|
+| POST   | `/api/test/messaging/publish`                  | Publish a test integration event                 |
+| POST   | `/api/test/messaging/publish-with-context`     | Publish with explicit metadata/context           |
+| GET    | `/api/test/messaging/consumed/{correlationId}` | Check if a test event was consumed               |
+| GET    | `/api/test/messaging/metadata/{correlationId}` | Inspect messaging metadata for a consumed event  |
+
+### Saga Endpoints
+
+| Method | Path                                           | Description                                     |
+|--------|-------------------------------------------------|-------------------------------------------------|
+| POST   | `/api/test/saga/start`                         | Start a demo saga flow                           |
+| GET    | `/api/test/saga/{correlationId}`               | Inspect current saga state                       |
+| POST   | `/api/test/saga/{correlationId}/transition`    | Manually trigger next saga transition            |
+| POST   | `/api/test/saga/{correlationId}/timeout`       | Simulate saga timeout                            |
+
+### Persistence Endpoints
+
+| Method | Path                          | Description                                       |
+|--------|-------------------------------|---------------------------------------------------|
+| GET    | `/api/test/persistence/ping`  | Verify database connectivity                      |
+| GET    | `/api/test/persistence/outbox`| Inspect MassTransit outbox status                 |
+
+### Integration Endpoints
+
+| Method | Path                                     | Description                                      |
+|--------|------------------------------------------|--------------------------------------------------|
+| POST   | `/api/test/integration/save-and-publish` | Combined repository save + event publish          |
+| POST   | `/api/test/integration/fail-after-save`  | Intentional failure after save for debugging      |
+
+### Other Endpoints
+
+| Method | Path                  | Description                                            |
+|--------|-----------------------|--------------------------------------------------------|
+| GET    | `/api/test/health`    | Quick health check                                     |
+| GET    | `/api/test/summary`   | Debug summary with DB, messaging, saga status          |
+
+### Example Usage
+
+```bash
+# Save a test item
+curl -X POST http://localhost:5000/api/test/repository/save \
+  -H "Content-Type: application/json" \
+  -d '{"name":"My Test Item","description":"Testing repository save"}'
+
+# Get the saved item
+curl http://localhost:5000/api/test/repository/{id}
+
+# Publish a test event
+curl -X POST http://localhost:5000/api/test/messaging/publish \
+  -H "Content-Type: application/json" \
+  -d '{"payload":"hello from test"}'
+
+# Check if event was consumed
+curl http://localhost:5000/api/test/messaging/consumed/{correlationId}
+
+# Start a test saga
+curl -X POST http://localhost:5000/api/test/saga/start \
+  -H "Content-Type: application/json" \
+  -d '{"buyerId":"test-buyer","totalAmount":99.99}'
+
+# Check saga state
+curl http://localhost:5000/api/test/saga/{correlationId}
+
+# Get debug summary
+curl http://localhost:5000/api/test/summary
+```
+
+### Swagger Grouping
+
+Debug/test endpoints are grouped under separate tags in Swagger UI (e.g., `Debug: Repository`, `Debug: Messaging`, `Debug: Saga`) so they are clearly separated from business endpoints.
