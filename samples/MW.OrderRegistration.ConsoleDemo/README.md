@@ -1,5 +1,7 @@
 # MW.OrderRegistration.ConsoleDemo
 
+> **Note:** This console demo is now a **secondary reference**. The primary executable sample is [`MW.OrderRegistration.ApiDemo`](../MW.OrderRegistration.ApiDemo/README.md), which provides the same order registration flow through HTTP endpoints. This console demo remains available as a reference and for command-line-based testing.
+
 An executable integration demo for the shared MW infrastructure packages, using an order registration scenario as the test flow.
 
 ## Purpose
