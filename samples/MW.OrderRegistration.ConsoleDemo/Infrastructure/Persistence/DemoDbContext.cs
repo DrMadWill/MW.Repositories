@@ -16,6 +16,7 @@ public class DemoDbContext : DbContext
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<InventoryReservation> InventoryReservations => Set<InventoryReservation>();
     public DbSet<PaymentAttempt> PaymentAttempts => Set<PaymentAttempt>();
+    public DbSet<TestItem> TestItems => Set<TestItem>();
     public DbSet<OrderRegistrationSagaState> OrderRegistrationSagaStates => Set<OrderRegistrationSagaState>();
 
     public DemoDbContext(DbContextOptions<DemoDbContext> options) : base(options)
@@ -55,6 +56,14 @@ public class DemoDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Amount).HasPrecision(18, 2);
             entity.Property(e => e.FailureReason).HasMaxLength(1024);
+        });
+
+        // Test entity for debug/test endpoints
+        modelBuilder.Entity<TestItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).HasMaxLength(256).IsRequired();
+            entity.Property(e => e.Description).HasMaxLength(1024);
         });
 
         // Saga state configuration

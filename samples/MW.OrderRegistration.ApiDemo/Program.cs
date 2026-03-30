@@ -2,6 +2,7 @@ using MassTransit;
 using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.EntityFrameworkCore;
 using MW.Messaging.MassTransit.Extensions;
+using MW.OrderRegistration.ApiDemo.TestInfrastructure;
 using MW.OrderRegistration.ConsoleDemo.Configuration;
 using MW.OrderRegistration.ConsoleDemo.Consumers;
 using MW.OrderRegistration.ConsoleDemo.Infrastructure.Persistence;
@@ -50,7 +51,43 @@ try
             Version = "v1",
             Description = "API demo host for testing order registration flow through persistence, messaging, and saga infrastructure."
         });
+
+        // Group debug/test endpoints separately from business APIs in Swagger
+        options.TagActionsBy(api =>
+        {
+            if (api.GroupName != null)
+                return new[] { api.GroupName };
+
+            var controllerName = api.ActionDescriptor.RouteValues["controller"] ?? "Default";
+
+            // Map test controllers to debug-prefixed tags for clear separation
+            return controllerName switch
+            {
+                "TestRepository" => new[] { "Debug: Repository" },
+                "TestMessaging" => new[] { "Debug: Messaging" },
+                "TestSaga" => new[] { "Debug: Saga" },
+                "TestPersistence" => new[] { "Debug: Persistence" },
+                "TestIntegration" => new[] { "Debug: Integration" },
+                "TestSummary" => new[] { "Debug: Summary" },
+                "TestHealth" => new[] { "Debug: Health" },
+                _ => new[] { controllerName }
+            };
+        });
+
+        options.DocInclusionPredicate((_, _) => true);
     });
+
+    // ── Debug/test infrastructure (development-only) ────────────────────────
+    // Environment guard: test services are registered only in Development
+    // or when explicitly enabled via configuration.
+    var enableTestEndpoints = builder.Environment.IsDevelopment()
+        || builder.Configuration.GetValue<bool>("TestEndpoints:Enabled");
+
+    if (enableTestEndpoints)
+    {
+        builder.Services.AddSingleton<TestConsumedEventStore>();
+        Log.Information("Debug/test endpoints enabled (environment: {Environment})", builder.Environment.EnvironmentName);
+    }
 
     // ── Persistence (shared infrastructure) ─────────────────────────────────
     var connectionString = builder.Configuration.GetConnectionString("DemoDb")!;
@@ -90,6 +127,12 @@ try
             cfg.AddConsumer<OrderRegistrationCompletedConsumer>();
             cfg.AddConsumer<OrderRegistrationFailedConsumer>();
             cfg.AddConsumer<OrderRegistrationTimedOutConsumer>();
+
+            // Register test event consumer for debug/test messaging endpoints
+            if (enableTestEndpoints)
+            {
+                cfg.AddConsumer<TestEventConsumer>();
+            }
 
             // Register saga state machine with EF Core persistence
             cfg.AddSagaStateMachine<OrderRegistrationStateMachine, OrderRegistrationSagaState>()
@@ -140,7 +183,34 @@ try
         };
     });
 
+    // ── Environment guard for debug/test endpoints ─────────────────────────
+    if (!enableTestEndpoints)
+    {
+        app.Use(async (context, next) =>
+        {
+            if (context.Request.Path.StartsWithSegments("/api/test"))
+            {
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+                await context.Response.WriteAsJsonAsync(new
+                {
+                    Message = "Debug/test endpoints are disabled in this environment. " +
+                              "Set ASPNETCORE_ENVIRONMENT=Development or TestEndpoints:Enabled=true to enable."
+                });
+                return;
+            }
+
+            await next();
+        });
+    }
+
     app.MapControllers();
+
+    if (!enableTestEndpoints)
+    {
+        Log.Information("Debug/test endpoints are DISABLED (environment: {Environment}). " +
+                        "Set ASPNETCORE_ENVIRONMENT=Development or TestEndpoints:Enabled=true to enable.",
+            app.Environment.EnvironmentName);
+    }
 
     Log.Information("API demo host started. Swagger UI available at the root URL.");
     await app.RunAsync();
