@@ -55,6 +55,8 @@ The console demo remains available as a reference during migration but is no lon
 | `payment-fail`   | Inventory succeeds, payment fails                                | Order failed          |
 | `timeout`        | Inventory succeeds, payment response never arrives (timeout)     | Order timed out       |
 
+> **Note:** Scenario selection mutates shared singleton state. Run different scenarios sequentially, not concurrently. This is a demo limitation, not a production pattern.
+
 **Response (202 Accepted):**
 ```json
 {
@@ -99,7 +101,7 @@ dotnet run --project samples/MW.OrderRegistration.ApiDemo
 
 ### 3. Open Swagger UI
 
-Navigate to `http://localhost:5000` (or the configured URL) to explore endpoints interactively.
+Navigate to the application URL (default: `http://localhost:5000` or as shown in the console output) to explore endpoints interactively via Swagger UI.
 
 ### 4. Test a Scenario
 

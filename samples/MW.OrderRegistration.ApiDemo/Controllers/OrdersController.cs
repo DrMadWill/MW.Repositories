@@ -43,6 +43,11 @@ public class OrdersController : ControllerBase
     /// Starts the order registration process.
     /// Creates the initial order and triggers the saga workflow.
     /// </summary>
+    /// <remarks>
+    /// The scenario override mutates a singleton DemoSettings instance. This is acceptable for
+    /// sequential demo usage but is NOT safe for concurrent requests with different scenarios.
+    /// For production use, scenario context should be propagated through message headers.
+    /// </remarks>
     /// <param name="request">Order registration request with buyer info, items, and optional scenario.</param>
     /// <returns>202 Accepted with order tracking information.</returns>
     [HttpPost("register")]
@@ -50,7 +55,8 @@ public class OrdersController : ControllerBase
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RegisterOrder([FromBody] RegisterOrderRequest request)
     {
-        // Apply scenario override if provided in request
+        // Apply scenario override if provided in request.
+        // Note: This mutates singleton state — safe for sequential demo use only.
         var scenario = ResolveScenario(request.Scenario);
         _demoSettings.ResolvedScenario = scenario;
 

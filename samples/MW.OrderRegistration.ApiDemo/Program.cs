@@ -27,7 +27,10 @@ try
     // ── Resolve scenario ────────────────────────────────────────────────────
     var demoSettings = new DemoSettings();
     builder.Configuration.GetSection(DemoSettings.SectionName).Bind(demoSettings);
-    // For API host, scenario defaults from config; per-request override is done in the controller
+    // For API host, scenario defaults from config; per-request override is done in the controller.
+    // Note: Scenario override mutates singleton state — safe for sequential demo usage only.
+    // For concurrent requests with different scenarios, scenario context should be propagated
+    // through message headers instead of shared state.
     demoSettings.ResolvedScenario = ScenarioResolver.Resolve(Array.Empty<string>(), demoSettings);
     builder.Services.AddSingleton(demoSettings);
 
