@@ -1,5 +1,7 @@
 # Architecture Note — MW.OrderRegistration.ConsoleDemo
 
+> **Deprecated as primary sample:** The API demo ([`MW.OrderRegistration.ApiDemo`](../MW.OrderRegistration.ApiDemo/ARCHITECTURE.md)) is now the primary executable sample for testing shared infrastructure integration. This console demo remains as a secondary reference.
+
 ## Intended Role
 
 This console application is a **sample/integration demo host**. Its purpose is to:
