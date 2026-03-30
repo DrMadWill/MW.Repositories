@@ -94,7 +94,7 @@ try
     builder.Services.AddEfCorePersistence<DemoDbContext>(options =>
     {
         options.ConnectionString = connectionString;
-        options.Provider = DatabaseProvider.PostgreSql;
+        options.Provider = DatabaseProvider.SqlServer;
         options.MigrationAssembly = typeof(DemoDbContext).Assembly.FullName;
         options.EnableSensitiveDataLogging = true;
         options.EnableDetailedErrors = true;

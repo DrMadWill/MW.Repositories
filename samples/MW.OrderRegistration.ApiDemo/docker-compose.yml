@@ -13,18 +13,17 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
-  postgres:
-    image: postgres:16-alpine
-    container_name: mw-api-demo-postgres
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mw-api-demo-sqlserver
     ports:
-      - "5432:5432"
+      - "1433:1433"
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: mw_order_demo
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "YourStrong!Passw0rd"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - sqlserver_data:/var/opt/mssql
 
 volumes:
   rabbitmq_data:
-  postgres_data:
+  sqlserver_data:
