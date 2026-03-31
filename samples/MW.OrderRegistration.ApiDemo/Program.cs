@@ -96,7 +96,8 @@ try
         options.ConnectionString = connectionString;
         options.Provider = DatabaseProvider.SqlServer;
         options.MigrationAssembly = typeof(DemoDbContext).Assembly.FullName;
-        options.EnableSensitiveDataLogging = true;
+        options.EnableSensitiveDataLogging = false;
+        options.IgnoreCommandLog = true; 
         options.EnableDetailedErrors = true;
         options.EnableHealthCheck = false;
     });

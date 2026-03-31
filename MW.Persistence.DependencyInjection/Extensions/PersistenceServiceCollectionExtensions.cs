@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using MW.Persistence.DependencyInjection.Options;
 using MW.Persistence.DependencyInjection.Providers;
@@ -73,6 +74,11 @@ public static class PersistenceServiceCollectionExtensions
 
             if (options.EnableDetailedErrors)
                 builder.EnableDetailedErrors();
+            
+            if (options.IgnoreCommandLog)
+                builder.ConfigureWarnings(w =>
+                    w.Ignore(RelationalEventId.CommandExecuted)
+                        .Ignore(RelationalEventId.CommandExecuting));
 
             if (options.Interceptors.Count > 0)
                 builder.AddInterceptors(options.Interceptors);

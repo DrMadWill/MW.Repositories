@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Reflection;
 using MassTransit;
+using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -208,7 +209,8 @@ public static class MassTransitServiceCollectionExtensions
         Action<IEntityFrameworkOutboxConfigurator>? configureOutbox = null)
         where TDbContext : DbContext
     {
-        configurator.AddEntityFrameworkOutbox<TDbContext>(o =>
+        // Call MassTransit's extension method explicitly to avoid infinite recursion
+        EntityFrameworkOutboxConfigurationExtensions.AddEntityFrameworkOutbox<TDbContext>(configurator, o =>
         {
             o.UseBusOutbox();
             configureOutbox?.Invoke(o);
@@ -257,7 +259,7 @@ public class MassTransitMessagingOptions
         Action<IEntityFrameworkOutboxConfigurator>? configureOutbox = null)
         where TDbContext : DbContext
     {
-        OutboxConfigurator = cfg => cfg.AddEntityFrameworkOutbox<TDbContext>(o =>
+        OutboxConfigurator = cfg => EntityFrameworkOutboxConfigurationExtensions.AddEntityFrameworkOutbox<TDbContext>(cfg, o =>
         {
             o.UseBusOutbox();
             configureOutbox?.Invoke(o);
@@ -274,7 +276,7 @@ public class MassTransitMessagingOptions
         Action<IEntityFrameworkOutboxConfigurator>? configureOutbox = null)
         where TDbContext : DbContext
     {
-        OutboxConfigurator = cfg => cfg.AddEntityFrameworkOutbox<TDbContext>(o =>
+        OutboxConfigurator = cfg => EntityFrameworkOutboxConfigurationExtensions.AddEntityFrameworkOutbox<TDbContext>(cfg, o =>
         {
             o.UseBusOutbox();
             o.QueryDelay = TimeSpan.FromSeconds(1);

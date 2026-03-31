@@ -24,7 +24,6 @@ public class OrderRegistrationStateMachine : MassTransitStateMachine<OrderRegist
     public Event<InventoryReservationFailed> InventoryReservationFailedEvent { get; private set; } = null!;
     public Event<PaymentSucceeded> PaymentSucceededEvent { get; private set; } = null!;
     public Event<PaymentFailed> PaymentFailedEvent { get; private set; } = null!;
-    public Event<PaymentTimeoutExpired> PaymentTimeoutExpiredEvent { get; private set; } = null!;
 
     public Schedule<OrderRegistrationSagaState, PaymentTimeoutExpired> PaymentTimeoutSchedule { get; private set; } = null!;
 
@@ -40,7 +39,6 @@ public class OrderRegistrationStateMachine : MassTransitStateMachine<OrderRegist
         Event(() => InventoryReservationFailedEvent, e => e.CorrelateById(ctx => ctx.Message.OrderId));
         Event(() => PaymentSucceededEvent, e => e.CorrelateById(ctx => ctx.Message.OrderId));
         Event(() => PaymentFailedEvent, e => e.CorrelateById(ctx => ctx.Message.OrderId));
-        Event(() => PaymentTimeoutExpiredEvent, e => e.CorrelateById(ctx => ctx.Message.OrderId));
 
         // Payment timeout schedule
         Schedule(() => PaymentTimeoutSchedule, instance => instance.PaymentTimeoutTokenId, s =>

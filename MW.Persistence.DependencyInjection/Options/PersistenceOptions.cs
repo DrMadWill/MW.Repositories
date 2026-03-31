@@ -60,6 +60,14 @@ public class PersistenceOptions
     public IList<IInterceptor> Interceptors { get; } = new List<IInterceptor>();
 
     /// <summary>
+    /// Gets or sets a value indicating whether EF Core command logging should be suppressed.
+    /// When <c>true</c>, both <see cref="Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.CommandExecuted"/>
+    /// and <see cref="Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.CommandExecuting"/>
+    /// events are ignored, reducing log noise from SQL command output.
+    /// </summary>
+    public bool IgnoreCommandLog { get; set; }
+
+    /// <summary>
     /// Adds an EF Core interceptor to the DbContext configuration.
     /// Interceptors can be used for auditing, logging, soft delete behavior, and domain event hooks.
     /// </summary>

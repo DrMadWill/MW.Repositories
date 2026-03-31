@@ -63,6 +63,7 @@ public class TestIntegrationController : ControllerBase
         };
 
         await _publisher.PublishAsync(testEvent, ct);
+        await _unitOfWork.SaveChangesAsync(ct);
 
         _logger.LogInformation(
             "[TestIntegration] Save+Publish — ItemId={ItemId}, CorrelationId={CorrelationId}",

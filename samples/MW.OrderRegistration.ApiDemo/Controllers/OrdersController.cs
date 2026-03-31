@@ -7,6 +7,7 @@ using MW.OrderRegistration.ConsoleDemo.Domain.Enums;
 using MW.OrderRegistration.ConsoleDemo.Events;
 using MW.OrderRegistration.ConsoleDemo.Infrastructure.Persistence;
 using MW.OrderRegistration.ConsoleDemo.Services;
+using MW.Persistence.Abstractions.UnitOfWork;
 
 namespace MW.OrderRegistration.ApiDemo.Controllers;
 
@@ -23,6 +24,7 @@ public class OrdersController : ControllerBase
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly DemoSettings _demoSettings;
     private readonly DemoDbContext _dbContext;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<OrdersController> _logger;
 
     public OrdersController(
@@ -30,12 +32,14 @@ public class OrdersController : ControllerBase
         IPublishEndpoint publishEndpoint,
         DemoSettings demoSettings,
         DemoDbContext dbContext,
+        IUnitOfWork unitOfWork,
         ILogger<OrdersController> logger)
     {
         _orderCreationService = orderCreationService;
         _publishEndpoint = publishEndpoint;
         _demoSettings = demoSettings;
         _dbContext = dbContext;
+        _unitOfWork = unitOfWork;
         _logger = logger;
     }
 
@@ -79,6 +83,7 @@ public class OrdersController : ControllerBase
             BuyerId = order.BuyerId,
             TotalAmount = order.TotalAmount
         });
+        await _unitOfWork.SaveChangesAsync();
 
         _logger.LogInformation(
             "[API] OrderRegistrationStarted published — OrderId={OrderId}, CorrelationId={CorrelationId}, Scenario={Scenario}",

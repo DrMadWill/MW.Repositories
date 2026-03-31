@@ -3,6 +3,7 @@ using MW.Messaging.Messaging;
 using MW.Messaging.Publishing;
 using MW.OrderRegistration.ApiDemo.Contracts;
 using MW.OrderRegistration.ApiDemo.TestInfrastructure;
+using MW.Persistence.Abstractions.UnitOfWork;
 
 namespace MW.OrderRegistration.ApiDemo.Controllers;
 
@@ -16,15 +17,18 @@ namespace MW.OrderRegistration.ApiDemo.Controllers;
 public class TestMessagingController : ControllerBase
 {
     private readonly IIntegrationEventPublisher _publisher;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly TestConsumedEventStore _consumedStore;
     private readonly ILogger<TestMessagingController> _logger;
 
     public TestMessagingController(
         IIntegrationEventPublisher publisher,
+        IUnitOfWork unitOfWork,
         TestConsumedEventStore consumedStore,
         ILogger<TestMessagingController> logger)
     {
         _publisher = publisher;
+        _unitOfWork = unitOfWork;
         _consumedStore = consumedStore;
         _logger = logger;
     }
@@ -44,6 +48,7 @@ public class TestMessagingController : ControllerBase
         };
 
         await _publisher.PublishAsync(testEvent, ct);
+        await _unitOfWork.SaveChangesAsync(ct);
 
         _logger.LogInformation(
             "[TestMessaging] Published — CorrelationId={CorrelationId}, EventName={EventName}",
@@ -85,6 +90,7 @@ public class TestMessagingController : ControllerBase
         };
 
         await _publisher.PublishAsync(testEvent, context, ct);
+        await _unitOfWork.SaveChangesAsync(ct);
 
         _logger.LogInformation(
             "[TestMessaging] Published with context — CorrelationId={CorrelationId}, TraceId={TraceId}",

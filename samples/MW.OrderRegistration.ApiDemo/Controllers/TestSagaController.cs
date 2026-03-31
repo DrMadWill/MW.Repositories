@@ -63,6 +63,7 @@ public class TestSagaController : ControllerBase
             BuyerId = buyerId,
             TotalAmount = order.TotalAmount
         }, ct);
+        await _unitOfWork.SaveChangesAsync(ct);
 
         _logger.LogInformation(
             "[TestSaga] Started — OrderId={OrderId}, CorrelationId={CorrelationId}",
@@ -121,6 +122,7 @@ public class TestSagaController : ControllerBase
                     OrderId = saga.OrderId,
                     ReservationId = reservationId
                 }, ct);
+                await _unitOfWork.SaveChangesAsync(ct);
                 return Ok(new SagaTransitionResponse
                 {
                     CorrelationId = correlationId,
@@ -136,6 +138,7 @@ public class TestSagaController : ControllerBase
                     OrderId = saga.OrderId,
                     Reason = "Debug/test: intentional inventory failure"
                 }, ct);
+                await _unitOfWork.SaveChangesAsync(ct);
                 return Ok(new SagaTransitionResponse
                 {
                     CorrelationId = correlationId,
@@ -152,6 +155,7 @@ public class TestSagaController : ControllerBase
                     OrderId = saga.OrderId,
                     PaymentId = paymentId
                 }, ct);
+                await _unitOfWork.SaveChangesAsync(ct);
                 return Ok(new SagaTransitionResponse
                 {
                     CorrelationId = correlationId,
@@ -167,6 +171,7 @@ public class TestSagaController : ControllerBase
                     OrderId = saga.OrderId,
                     Reason = "Debug/test: intentional payment failure"
                 }, ct);
+                await _unitOfWork.SaveChangesAsync(ct);
                 return Ok(new SagaTransitionResponse
                 {
                     CorrelationId = correlationId,
@@ -203,6 +208,7 @@ public class TestSagaController : ControllerBase
             CorrelationId = correlationId.ToString(),
             OrderId = saga.OrderId
         }, ct);
+        await _unitOfWork.SaveChangesAsync(ct);
 
         _logger.LogWarning(
             "[TestSaga] Timeout simulated — CorrelationId={CorrelationId}, OrderId={OrderId}",
