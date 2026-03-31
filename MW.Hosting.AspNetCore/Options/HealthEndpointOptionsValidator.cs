@@ -10,6 +10,8 @@ public class HealthEndpointOptionsValidator : IValidateOptions<HealthEndpointOpt
 
         if (string.IsNullOrEmpty(options.Path))
             failures.Add($"{nameof(HealthEndpointOptions.Path)} must not be null or empty.");
+        else if (!options.Path.StartsWith("/"))
+            failures.Add($"{nameof(HealthEndpointOptions.Path)} must start with '/'.");
 
         if (!string.IsNullOrEmpty(options.ReadinessPath) && !options.ReadinessPath.StartsWith("/"))
             failures.Add($"{nameof(HealthEndpointOptions.ReadinessPath)} must start with '/'.");

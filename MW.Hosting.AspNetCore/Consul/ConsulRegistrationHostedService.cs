@@ -74,7 +74,12 @@ public class ConsulRegistrationHostedService : IHostedService
 
     private static TimeSpan ParseTimeSpan(string value)
     {
-        if (value.EndsWith("s", StringComparison.OrdinalIgnoreCase))
+        if (value.EndsWith("ms", StringComparison.OrdinalIgnoreCase))
+        {
+            if (int.TryParse(value[..^2], out var milliseconds))
+                return TimeSpan.FromMilliseconds(milliseconds);
+        }
+        else if (value.EndsWith("s", StringComparison.OrdinalIgnoreCase))
         {
             if (int.TryParse(value[..^1], out var seconds))
                 return TimeSpan.FromSeconds(seconds);
@@ -83,11 +88,6 @@ public class ConsulRegistrationHostedService : IHostedService
         {
             if (int.TryParse(value[..^1], out var minutes))
                 return TimeSpan.FromMinutes(minutes);
-        }
-        else if (value.EndsWith("ms", StringComparison.OrdinalIgnoreCase))
-        {
-            if (int.TryParse(value[..^2], out var milliseconds))
-                return TimeSpan.FromMilliseconds(milliseconds);
         }
 
         return TimeSpan.FromSeconds(10);
