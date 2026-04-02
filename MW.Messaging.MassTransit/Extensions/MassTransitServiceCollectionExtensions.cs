@@ -180,7 +180,7 @@ public static class MassTransitServiceCollectionExtensions
             };
             services.AddHealthChecks()
                 .AddRabbitMQ(uriBuilder.Uri, name: "rabbitmq")
-                .AddCheck<MassTransitBusHealthCheck>("masstransit-bus");
+                .AddCheck<MassTransitBusHealthCheck>("mw-masstransit-bus");
         }
 
         return services;

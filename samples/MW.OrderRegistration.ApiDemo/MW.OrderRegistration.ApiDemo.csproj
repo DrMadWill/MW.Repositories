@@ -11,15 +11,6 @@
     <!-- Reuse domain, events, saga, consumers, services, DbContext from ConsoleDemo -->
     <ProjectReference Include="..\MW.OrderRegistration.ConsoleDemo\MW.OrderRegistration.ConsoleDemo.csproj" />
 
-    <!-- Shared MW infrastructure packages -->
-    <ProjectReference Include="..\..\MW.Messaging.Abstractions\MW.Messaging.Abstractions.csproj" />
-    <ProjectReference Include="..\..\MW.Messaging.MassTransit\MW.Messaging.MassTransit.csproj" />
-    <ProjectReference Include="..\..\MW.Saga.Abstractions\MW.Saga.Abstractions.csproj" />
-    <ProjectReference Include="..\..\MW.Saga.MassTransit\MW.Saga.MassTransit.csproj" />
-    <ProjectReference Include="..\..\MW.Persistence.Abstractions\MW.Persistence.Abstractions.csproj" />
-    <ProjectReference Include="..\..\MW.Persistence.EntityFrameworkCore\MW.Persistence.EntityFrameworkCore.csproj" />
-    <ProjectReference Include="..\..\MW.Persistence.DependencyInjection\MW.Persistence.DependencyInjection.csproj" />
-    <ProjectReference Include="..\..\MW.Application.Abstractions\MW.Application.Abstractions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

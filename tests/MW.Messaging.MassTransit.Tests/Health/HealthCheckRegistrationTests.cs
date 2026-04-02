@@ -65,7 +65,7 @@ public class HealthCheckRegistrationTests
         var healthOptions = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<HealthCheckServiceOptions>>();
 
         healthOptions.Value.Registrations
-            .Should().Contain(r => r.Name == "masstransit-bus");
+            .Should().Contain(r => r.Name == "mw-masstransit-bus");
     }
 
     [Fact]
