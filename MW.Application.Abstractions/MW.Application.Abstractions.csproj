@@ -9,6 +9,7 @@
         <PackageProjectUrl></PackageProjectUrl>
         <PackageIcon>avatar.png</PackageIcon>
         <RepositoryUrl>https://github.com/DrMadWill/MW.Repositories</RepositoryUrl>
+        <Version>1.0.1</Version>
     </PropertyGroup>
 
     <ItemGroup>
