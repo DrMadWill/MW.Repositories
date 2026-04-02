@@ -23,12 +23,17 @@ public static class SerilogExtensions
 
         builder.Host.UseSerilog((context, services, loggerConfig) =>
         {
+            const string template =
+                "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3}] " +
+                "[User:{UserName}] [Trace:{STraceId}] [Activity:{SActivityId}] " +
+                "{Message:lj}{NewLine}{Exception}";
             loggerConfig
                 .ReadFrom.Configuration(context.Configuration)
                 .Enrich.FromLogContext()
                 .Enrich.WithProperty("MachineName", Environment.MachineName)
                 .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
-                .WriteTo.Console();
+                .Enrich.With(new UserEnricher(services.GetRequiredService<IHttpContextAccessor>()))
+                .WriteTo.Console(outputTemplate: template);
 
             if (graylogOptions.Enabled)
             {

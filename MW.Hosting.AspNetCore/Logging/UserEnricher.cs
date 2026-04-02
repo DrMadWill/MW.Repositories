@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using MW.Hosting.AspNetCore.Abstractions;
@@ -6,33 +7,40 @@ using Serilog.Events;
 
 namespace MW.Hosting.AspNetCore.Logging;
 
-public class UserEnricher : ILogEventEnricher
+public class UserEnricher(IHttpContextAccessor httpContextAccessor) : ILogEventEnricher
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-
-    public UserEnricher(IHttpContextAccessor httpContextAccessor)
-    {
-        _httpContextAccessor = httpContextAccessor;
-    }
-
     public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
     {
-        var accessor = _httpContextAccessor.HttpContext?.RequestServices
-            .GetService<ICurrentUserAccessor>();
+        var httpContext = httpContextAccessor.HttpContext;
 
-        if (accessor is null || !accessor.IsAuthenticated)
+        var accessor = httpContext?.RequestServices.GetService<ICurrentUserAccessor>();
+
+        var displayName = (accessor is not null && accessor.IsAuthenticated)
+            ? (!string.IsNullOrWhiteSpace(accessor.UserName)
+                ? accessor.UserName
+                : accessor.UserId ?? "Authenticated")
+            : "Anonymous";
+
+        logEvent.AddPropertyIfAbsent(
+            propertyFactory.CreateProperty("UserName", displayName));
+
+        if (accessor is not null && accessor.IsAuthenticated && !string.IsNullOrWhiteSpace(accessor.UserId))
         {
-            logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty("UserName", "Anonymous"));
-            return;
+            logEvent.AddPropertyIfAbsent(
+                propertyFactory.CreateProperty("UserId", accessor.UserId));
         }
 
-        var displayName = !string.IsNullOrEmpty(accessor.UserName)
-            ? accessor.UserName
-            : accessor.UserId ?? "Anonymous";
+        var traceId = httpContext?.TraceIdentifier;
+        var activityTraceId = Activity.Current?.TraceId.ToString();
+        var spanId = Activity.Current?.SpanId.ToString();
 
-        logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty("UserName", displayName));
+        logEvent.AddPropertyIfAbsent(
+            propertyFactory.CreateProperty("STraceId", traceId ?? string.Empty));
 
-        if (!string.IsNullOrEmpty(accessor.UserId))
-            logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty("UserId", accessor.UserId));
+        logEvent.AddPropertyIfAbsent(
+            propertyFactory.CreateProperty("SActivityId", activityTraceId ?? string.Empty));
+
+        logEvent.AddPropertyIfAbsent(
+            propertyFactory.CreateProperty("SSpanId", spanId ?? string.Empty));
     }
 }
