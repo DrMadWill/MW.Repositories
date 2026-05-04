@@ -9,6 +9,7 @@
         <RepositoryUrl>https://github.com/DrMadWill/MW.Identity.Token</RepositoryUrl>
         <RepositoryType>Extensions</RepositoryType>
         <PackageIcon>avatar.png</PackageIcon>
+        <Version>1.0.1</Version>
     </PropertyGroup>
     <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
